@@ -23,7 +23,10 @@ class TuplesImpl extends Tuples {
     val arity = args.size
 
     vpr.DomainType(
-      domain = domain(arity),
+      domain = vpr.Domain(name="Struct", typVars= Nil, functions = Seq(vpr.DomainFunc(s"struct_loc", Seq( vpr.LocalVarDecl("s",vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = "Struct")),
+    axioms=Nil
+    
+    )(),
       typVarsMap = typeVarMap(args)
     )
   }
@@ -39,11 +42,7 @@ class TuplesImpl extends Tuples {
   }
 
   override def get(arg: vpr.Exp, index: Int, arity: Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
-    vpr.DomainFuncApp(
-      func = getter(index, arity),
-      args = Vector(arg),
-      typVarMap = arg.typ.asInstanceOf[vpr.DomainType].typVarsMap
-    )(pos, info, errT)
+    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar(s"T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.LocalVarDecl(s"$index", vpr.Int)().localVar), typVarMap = arg.typ.asInstanceOf[vpr.DomainType].typVarsMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"da",vpr.NoTrafos )), typVarMap = arg.typ.asInstanceOf[vpr.DomainType].typVarsMap)(pos, info, errT)
   }
 
   def tuple(arity: Int): vpr.DomainFunc =
@@ -65,9 +64,9 @@ class TuplesImpl extends Tuples {
   private val getters: mutable.Map[(Int,Int), vpr.DomainFunc] = mutable.Map.empty
 
   private def addNTuplesDomain(arity: Int): Unit = {
-    val domainName = s"${Names.tupleDomain}$arity"
-
-    val typeVars = 0.until(arity) map (ix => vpr.TypeVar(s"T$ix"))
+    val domainName = s"Struct"
+    
+    val typeVars = (0 until arity) map (i => vpr.TypeVar(s"T"))
     val decls = 0.until(arity) map (ix => vpr.LocalVarDecl(s"t$ix", typeVars(ix))())
     val vars = decls map (_.localVar)
     val typVarMap = typeVars.zip(typeVars).toMap
@@ -75,70 +74,80 @@ class TuplesImpl extends Tuples {
     val domainTyp = vpr.DomainType(domainName, typVarMap)(typeVars)
     val domainDecl = vpr.LocalVarDecl("p", domainTyp)()
     val domainVar = domainDecl.localVar
+    val struct_get =  vpr.DomainFunc(s"struct_gettup", Seq(vpr.LocalVarDecl("l",vpr.Int)()), vpr.TypeVar(s"T"))(domainName = domainName)
+    
+    val struct_rev =   vpr.DomainFunc(s"struct_settup", Seq(vpr.LocalVarDecl("s",vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m",vpr.Int)(),vpr.LocalVarDecl("t",vpr.TypeVar(s"T"))()), vpr.TypeVar(s"Struct"))(domainName = domainName)
+   
 
     val tupleFunc = vpr.DomainFunc(s"tuple$arity",decls, domainTyp)(domainName = domainName)
     val getFuncs = 0.until(arity) map (ix =>
       vpr.DomainFunc(s"get${ix}of$arity", Seq(domainDecl), typeVars(ix))(domainName = domainName)
       )
 
-    val getOverTupleAxiom = {
-      val nTupleApp = vpr.DomainFuncApp(tupleFunc, vars, typVarMap)()
-      val eqs = 0.until(arity) map {ix =>
-        vpr.EqCmp(
-          vpr.DomainFuncApp(
-            getFuncs(ix),
-            Seq(nTupleApp),
-            typVarMap
-          )(),
-          vars(ix)
-        )()
-      }
 
-      vpr.NamedDomainAxiom(
-        name = s"getter_over_tuple$arity",
-        exp = vpr.Forall(
-          decls,
-          Seq(vpr.Trigger(Seq(nTupleApp))()),
-          viper.silicon.utils.ast.BigAnd(eqs)
-        )()
-      )(domainName = domainName)
-    }
-
-    val tupleOverGetAxiom = {
-      val nGetApp = getFuncs map (f =>
-        vpr.DomainFuncApp(f, Seq(domainVar), typVarMap)()
-        )
-
-      vpr.NamedDomainAxiom(
-        name = s"tuple${arity}_over_getter",
-        exp = vpr.Forall(
-          Seq(domainDecl),
-          nGetApp map (g => vpr.Trigger(Seq(g))()),
-          vpr.EqCmp(
-            vpr.DomainFuncApp(
-              tupleFunc,
-              nGetApp,
-              typVarMap
-            )(),
-            domainVar
-          )()
-        )()
-      )(domainName = domainName)
-    }
 
     // there are not quantified variables for tuples of 0 arity. Thus, do not generate any axioms in this case:
-    val axioms = if (arity == 0) Seq.empty else Seq(getOverTupleAxiom, tupleOverGetAxiom)
+    
     val domain = vpr.Domain(
       domainName,
-      tupleFunc +: getFuncs,
-      axioms,
+      Seq(struct_get, struct_rev),
+      Nil,
       typeVars
     )()
+     val domain2 = vpr.Domain(name="Struct", typVars= Nil, functions = Seq(vpr.DomainFunc(s"struct_loc", Seq( vpr.LocalVarDecl("s",vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = domainName)),
+    axioms=Nil
+    
+    )()
+ 
+    val typeVarsi = (0 until 0) map (i => vpr.TypeVar(s"T"))
+    val typeVarMapka = (typeVarsi zip typeVarsi).toMap
+    val s=vpr.LocalVarDecl("s", vpr.TypeVar(s"Struct"))().localVar
+    val t=vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))().localVar
+    val m=vpr.LocalVarDecl("m", vpr.Int)().localVar
+    val n=vpr.LocalVarDecl("n", vpr.Int)().localVar
+val first = {
+vpr.NamedDomainAxiom(
+        name = s"get_set_0_ax",
+        exp = vpr.Forall(
+          Seq(vpr.LocalVarDecl("s", vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m", vpr.Int)(), vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))()),
+          Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"da",vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), s"da",vpr.NoTrafos )))()),
+         vpr.EqCmp(
+               vpr.DomainFuncApp(s"struct_gettup", Seq( vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"da",vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), s"da",vpr.NoTrafos )),typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), s"da",vpr.NoTrafos ),
+                vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))().localVar           )()
+        )()
+      )(domainName = domainName)
+}
+val second = {
+vpr.NamedDomainAxiom(
+        name = s"get_set_1_ax",
+        exp = vpr.Forall(
+          Seq(vpr.LocalVarDecl("s", vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m", vpr.Int)(),vpr.LocalVarDecl("n", vpr.Int)(), vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))()),
+          Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"da",vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), s"da",vpr.NoTrafos )))()),
+         vpr.Implies(vpr.NeCmp(m,n)(),vpr.EqCmp(
+          
+          vpr.DomainFuncApp(s"struct_loc", Seq(s,m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), s"da",vpr.NoTrafos ) ,
+                vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"da",vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), s"da",vpr.NoTrafos )
+                         )()
+        )())()
+      )(domainName = domainName)
+}
+    val domain3 = vpr.Domain(name="StructOps", typVars= (0 until 1) map (i=> vpr.TypeVar("T")), functions = Seq(struct_get, struct_rev),
+    axioms=Seq(first,second)
+    
+    )()
+
+
+
+
 
     domains.update(arity, domain)
+ 
     constructors.update(arity, tupleFunc)
     (0 until arity) foreach (ix => getters.update((ix, arity), getFuncs(ix)))
 
-    _generatedDomains ::= domain
+
+    _generatedDomains ::= domain2
+     _generatedDomains ::= domain3
+
   }
 }
