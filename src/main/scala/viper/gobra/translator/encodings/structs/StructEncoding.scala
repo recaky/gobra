@@ -269,6 +269,10 @@ class StructEncoding extends TypeEncoding {
     *   decreases _
     */
   private val shDfltFunc: FunctionGenerator[Vector[in.Field]] = new FunctionGenerator[Vector[in.Field]] {
+    private var genFunctions: List[vpr.Function] = List.empty
+     override def finalize(addMemberFn: vpr.Member => Unit): Unit = {
+    genFunctions.headOption foreach addMemberFn
+  }
     override def genFunction(fs: Vector[in.Field])(ctx: Context): vpr.Function = {
       val resType = in.StructT(fs, Shared)
       val vResType = typ(ctx)(resType)
@@ -287,7 +291,7 @@ class StructEncoding extends TypeEncoding {
     val domainType = vpr.DomainType(domainName = domainName, partialTypVarsMap = typeVarMap)(typeVars)
     val x = vpr.LocalVarDecl("x", domainType)().localVar
 
-      vpr.Function(
+      val fun= vpr.Function(
         name = s"default",
         formalArgs = Seq.empty,
         typ = vResType,
@@ -299,6 +303,8 @@ class StructEncoding extends TypeEncoding {
           ,vpr.LocalVarDecl("null", domainType)().localVar)())())()),
         body = None
       )()
+      genFunctions ::= fun
+      fun
     }
   }
 }

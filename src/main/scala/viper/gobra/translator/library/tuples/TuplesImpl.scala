@@ -4,6 +4,7 @@
 //
 // Copyright (c) 2011-2020 ETH Zurich.
 package viper.gobra.translator.library.tuples
+import scala.language.postfixOps
 
 import viper.gobra.translator.Names
 import viper.silver.{ast => vpr}
@@ -20,7 +21,7 @@ class TuplesImpl extends Tuples {
   }
 
   override def typ(args: Vector[vpr.Type]): vpr.DomainType = {
-    val arity = args.size
+    val arity = 0
 
     vpr.DomainType(
       domain = vpr.Domain(name="Struct", typVars= Nil, functions = Seq(vpr.DomainFunc(s"struct_loc", Seq( vpr.LocalVarDecl("s",vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = "Struct")),

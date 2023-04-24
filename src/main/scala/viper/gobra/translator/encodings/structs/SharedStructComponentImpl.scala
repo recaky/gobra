@@ -24,6 +24,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
   private var genArities: Set[Int] = Set.empty
   private var domains: Map[Int, vpr.Domain] = Map.empty
   private var gets: Map[(Int, Int), vpr.DomainFunc] = Map.empty
+  private var members:Int=0
 
   /**
     * Generates:
@@ -123,14 +124,14 @@ class SharedStructComponentImpl extends SharedStructComponent {
     genDomains ::= domain
     genDomains ::= domain2
 
-    domains += (arity -> domain)
+    domains += (0 -> domain)
    
-    genArities += arity
+    genArities += 0
   }
 
   /** Returns type of shared-struct domain. */
   override def typ(t: ComponentParameter)(ctx: Context): vpr.Type = {
-    val arity = t.size
+    val arity = 0
       
     if (!(genArities contains arity)) genDomain(arity)(ctx)
 
@@ -144,7 +145,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
 
   /** Getter of shared-struct domain. */
   override def get(base: vpr.Exp, idx: Int, t: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = {
-    val arity = t.size
+    val arity = 0
     val domainName: String = s"ShStructOps"
     val typeVars = (0 until arity) map (i => vpr.TypeVar(s"T$i"))
     val typeVarMap = (typeVars zip typeVars).toMap
