@@ -24,7 +24,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
   private var genArities: Set[Int] = Set.empty
   private var domains: Map[Int, vpr.Domain] = Map.empty
   private var gets: Map[(Int, Int), vpr.DomainFunc] = Map.empty
-  private var members:Int=0
+  
 
   /**
     * Generates:
@@ -53,12 +53,12 @@ class SharedStructComponentImpl extends SharedStructComponent {
   private def genDomain(arity: Int)(ctx: Context): Unit = {
    
     val domainName: String = s"ShStructOps"
-    val typeVars = (0 until 1) map (i => vpr.TypeVar(s"T"))
+    val typeVars = Seq(vpr.TypeVar(s"T"))
     val typeVarMap = (typeVars zip typeVars).toMap
     val domainType = vpr.DomainType(domainName = domainName, partialTypVarsMap = typeVarMap)(typeVars)
-    val xDecl = vpr.LocalVarDecl("x", domainType)()
+    val xDecl = vpr.LocalVarDecl("x",vpr.TypeVar(s"ShStruct"))()
     val x = xDecl.localVar
-    val yDecl = vpr.LocalVarDecl("y", domainType)()
+    val yDecl = vpr.LocalVarDecl("y",vpr.TypeVar(s"ShStruct"))()
     val y = yDecl.localVar
    
   
@@ -147,11 +147,10 @@ class SharedStructComponentImpl extends SharedStructComponent {
   override def get(base: vpr.Exp, idx: Int, t: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = {
     val arity = 0
     val domainName: String = s"ShStructOps"
-    val typeVars = (0 until arity) map (i => vpr.TypeVar(s"T$i"))
+    val typeVars = Seq(vpr.TypeVar(s"T"))
     val typeVarMap = (typeVars zip typeVars).toMap
-    val domainType = vpr.DomainType(domainName = domainName, partialTypVarsMap = typeVarMap)(typeVars)
-    val xDecl = vpr.LocalVarDecl("x", domainType)()
-    val x = xDecl.localVar
+   
+  
     
     if (!(genArities contains arity)) genDomain(arity)(ctx)
     val (pos, info, errT) = src.vprMeta

@@ -34,9 +34,9 @@ class TuplesImpl extends Tuples {
 
   override def create(args: Vector[vpr.Exp])(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
     val arity = args.size
-
+ 
     vpr.DomainFuncApp(
-      func = tuple(arity),
+      func = tuple(arity,args),
       args = args,
       typVarMap = typeVarMap(args map (_.typ))
     )(pos, info, errT)
@@ -46,7 +46,7 @@ class TuplesImpl extends Tuples {
     vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar(s"T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.LocalVarDecl(s"$index", vpr.Int)().localVar), typVarMap = arg.typ.asInstanceOf[vpr.DomainType].typVarsMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"da",vpr.NoTrafos )), typVarMap = arg.typ.asInstanceOf[vpr.DomainType].typVarsMap)(pos, info, errT)
   }
 
-  def tuple(arity: Int): vpr.DomainFunc =
+  def tuple(arity: Int,args:Vector[vpr.Exp]): vpr.DomainFunc =
     constructors.getOrElse(arity, {addNTuplesDomain(arity); constructors(arity)})
   def getter(index: Int, arity: Int): vpr.DomainFunc =
     getters.getOrElse((index, arity), {addNTuplesDomain(arity); getters((index, arity))})
