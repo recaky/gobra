@@ -192,9 +192,10 @@ class StructEncoding extends TypeEncoding {
       sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Shared =>
+    val length= fs.length
     
    val (pos, info, errT) = e.vprMeta
-     unit(shDfltFunc(Vector.empty, fs)(pos, info, errT)(ctx))
+     unit(shDfltFunc(Vector(vpr.LocalVarDecl(s"$length",vpr.Int)().localVar), fs)(pos, info, errT)(ctx))
 
     case (lit: in.StructLit) :: ctx.Struct(fs) =>
       val fieldExprs = lit.args.map(arg => ctx.expression(arg))
@@ -298,10 +299,14 @@ class StructEncoding extends TypeEncoding {
         typ = vResType,
         pres = Seq(pre)
         ,
-        posts = Seq(vpr.Forall(Seq(vpr.LocalVarDecl("location", vpr.TypeVar(s"Int"))()),Nil,vpr.Implies(vpr.And(vpr.GeCmp(vpr.LocalVarDecl("location", domainType)().localVar,vpr.IntLit(0)())(),
-        vpr.LtCmp(vpr.LocalVarDecl("location", domainType)().localVar,vpr.DomainFuncApp(s"struct_length", Seq(vpr.LocalVarDecl("result", domainType)().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos ))())(),vpr.EqCmp(
+        posts = Seq(vpr.Forall(Seq(vpr.LocalVarDecl("location", vpr.TypeVar(s"Int"))()),Nil,
+        vpr.Implies(
+          vpr.And(vpr.GeCmp(
+            vpr.LocalVarDecl("location", domainType)().localVar,vpr.IntLit(0)())(),
+        vpr.LtCmp(vpr.LocalVarDecl("location", domainType)().localVar,vpr.DomainFuncApp(s"struct_length", Seq(vpr.LocalVarDecl("result", domainType)().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos ))())(),
+        vpr.And(vpr.EqCmp(vpr.LocalVarDecl("length", domainType)().localVar,vpr.DomainFuncApp(s"struct_length", Seq(vpr.LocalVarDecl("result", domainType)().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos ))(),vpr.EqCmp(
           vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(vpr.LocalVarDecl("result", vpr.TypeVar(s"ShStruct"))().localVar,vpr.LocalVarDecl("location", vpr.TypeVar(s"Int"))().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Ref"), s"da",vpr.NoTrafos )
-          ,vpr.LocalVarDecl("null", domainType)().localVar)())())()),
+          ,vpr.LocalVarDecl("null", domainType)().localVar)())())())()),
         body = None
       )()
       genFunctions ::= fun
