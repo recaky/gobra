@@ -286,7 +286,7 @@ class StructEncoding extends TypeEncoding {
       val post = pure(sequence(fieldEq).map(VU.bigAnd(_)(vpr.NoPosition, vpr.NoInfo, vpr.NoTrafos)))(ctx).res
           .transform{ case x: vpr.LocalVar if x.name == resDummy.id => vpr.Result(vResType)() }
           val domainName: String = s"ShStructOps"
-    val typeVars = (0 until 0) map (i => vpr.TypeVar(s"T"))
+    val typeVars = Seq( vpr.TypeVar(s"T"))
     val typeVarMap = (typeVars zip typeVars).toMap
     val domainType = vpr.DomainType(domainName = domainName, partialTypVarsMap = typeVarMap)(typeVars)
     val x = vpr.LocalVarDecl("x", domainType)().localVar
@@ -299,7 +299,7 @@ class StructEncoding extends TypeEncoding {
         ,
         posts = Seq(vpr.Forall(Seq(vpr.LocalVarDecl("location", vpr.TypeVar(s"Int"))()),Nil,vpr.Implies(vpr.And(vpr.GeCmp(vpr.LocalVarDecl("location", domainType)().localVar,vpr.IntLit(0)())(),
         vpr.LtCmp(vpr.LocalVarDecl("location", domainType)().localVar,vpr.DomainFuncApp(s"struct_length", Seq(vpr.LocalVarDecl("result", domainType)().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos ))())(),vpr.EqCmp(
-          vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(vpr.LocalVarDecl("result", vpr.TypeVar(s"ShStruct"))().localVar,vpr.LocalVarDecl("location", vpr.TypeVar(s"Int"))().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), s"da",vpr.NoTrafos )
+          vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(vpr.LocalVarDecl("result", vpr.TypeVar(s"ShStruct"))().localVar,vpr.LocalVarDecl("location", vpr.TypeVar(s"Int"))().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Ref"), s"da",vpr.NoTrafos )
           ,vpr.LocalVarDecl("null", domainType)().localVar)())())()),
         body = None
       )()
