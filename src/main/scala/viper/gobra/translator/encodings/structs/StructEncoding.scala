@@ -192,8 +192,9 @@ class StructEncoding extends TypeEncoding {
       sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Shared =>
-      val (pos, info, errT) = e.vprMeta
-      unit(shDfltFunc(Vector.empty, fs)(pos, info, errT)(ctx))
+    
+   val (pos, info, errT) = e.vprMeta
+     unit(shDfltFunc(Vector.empty, fs)(pos, info, errT)(ctx))
 
     case (lit: in.StructLit) :: ctx.Struct(fs) =>
       val fieldExprs = lit.args.map(arg => ctx.expression(arg))
@@ -293,7 +294,7 @@ class StructEncoding extends TypeEncoding {
 
       val fun= vpr.Function(
         name = s"default",
-        formalArgs = Seq.empty,
+        formalArgs = Seq(vpr.LocalVarDecl("length", vpr.TypeVar(s"Int"))()),
         typ = vResType,
         pres = Seq(pre)
         ,
