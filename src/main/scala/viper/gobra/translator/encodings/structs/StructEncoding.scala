@@ -188,18 +188,20 @@ class StructEncoding extends TypeEncoding {
       } yield ex.update(vBase, idx, vVal, cptParam(fs)(ctx))(upd)(ctx)
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Exclusive =>
-      val fieldDefaults = fs.map(f => in.DfltVal(f.typ)(e.info))
-      sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
+       
+     val fieldDefaults = fs.map(f => in.DfltVal(f.typ)(e.info))
+     sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Shared =>
     val length= fs.length
     
    val (pos, info, errT) = e.vprMeta
-     unit(shDfltFunc(Vector(vpr.LocalVarDecl(s"$length",vpr.Int)().localVar), fs)(pos, info, errT)(ctx))
+     unit(shDfltFunc(Vector(vpr.IntLit(length)()), fs)(pos, info, errT)(ctx))
 
     case (lit: in.StructLit) :: ctx.Struct(fs) =>
-      val fieldExprs = lit.args.map(arg => ctx.expression(arg))
-      sequence(fieldExprs).map(ex.create(_, cptParam(fs)(ctx))(lit)(ctx))
+     
+      val x = vpr.LocalVarDecl("x", vpr.Bool)().localVar
+      sequence(lit.args.map(arg => ctx.expression(arg))).map(ex.create(_, cptParam(fs)(ctx))(lit)(ctx))
 
     case (loc: in.Location) :: ctx.Struct(_) / Shared =>
       sh.convertToExclusive(loc)(ctx, ex)

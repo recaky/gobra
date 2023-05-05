@@ -34,12 +34,20 @@ class TuplesImpl extends Tuples {
 
   override def create(args: Vector[vpr.Exp])(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
     val arity = args.size
- 
-    vpr.DomainFuncApp(
-      func = tuple(arity,args),
-      args = args,
+    val index = arity - 1
+    val value = args(index)
+    
+    if (arity==1)  vpr.DomainFuncApp(
+      funcname = "struct_settup",
+      args = Seq(vpr.LocalVarDecl(s"empty", vpr.TypeVar("Struct"))().localVar,vpr.LocalVarDecl(s"$index", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
       typVarMap = typeVarMap(args map (_.typ))
-    )(pos, info, errT)
+    )(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar("Struct"), s"StructOps",vpr.NoTrafos)
+ 
+    else vpr.DomainFuncApp(
+      funcname = "struct_settup",
+      args = Seq(create(args.dropRight(1))(vpr.NoPosition,vpr.NoInfo,vpr.NoTrafos),vpr.LocalVarDecl(s"$index", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
+      typVarMap = typeVarMap(args map (_.typ))
+    )(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar("Struct"), s"StructOps",vpr.NoTrafos)
   }
 
   override def get(arg: vpr.Exp, index: Int, arity: Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
