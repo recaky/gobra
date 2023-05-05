@@ -199,10 +199,15 @@ class StructEncoding extends TypeEncoding {
      unit(shDfltFunc(Vector(vpr.IntLit(length)()), fs)(pos, info, errT)(ctx))
 
     case (lit: in.StructLit) :: ctx.Struct(fs) =>
-     
-      val x = vpr.LocalVarDecl("x", vpr.Bool)().localVar
-      sequence(lit.args.map(arg => ctx.expression(arg))).map(ex.create(_, cptParam(fs)(ctx))(lit)(ctx))
-
+    /* val name = ctx.freshNames.next()
+     val x = in.LocalVar(name, lit.typ)(lit.info)
+      val  vX = variable(ctx)(x)
+      for {
+        
+        _ <- local(vX)
+        res<- sequence(lit.args.map(arg => ctx.expression(arg))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
+      } yield res */
+      sequence(lit.args.map(arg => ctx.expression(arg))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
     case (loc: in.Location) :: ctx.Struct(_) / Shared =>
       sh.convertToExclusive(loc)(ctx, ex)
   }
