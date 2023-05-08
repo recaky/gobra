@@ -19,7 +19,10 @@ import viper.gobra.translator.library.Generator
 import viper.gobra.translator.context.Context
 
 trait SharedStructComponent extends Generator {
-
+  
+  
+  
+  var flag:Int = 1
   /** Returns type of shared-struct domain. */
   def typ(t: ComponentParameter)(ctx: Context): vpr.Type
 

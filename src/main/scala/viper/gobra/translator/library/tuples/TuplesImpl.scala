@@ -36,16 +36,18 @@ class TuplesImpl extends Tuples {
     val arity = args.size
     val index = arity - 1
     val value = args(index)
+    val indexik = index -1
+    val name = args(0)
     
-    if (arity==1)  vpr.DomainFuncApp(
+    if (arity==2)  vpr.DomainFuncApp(
       funcname = "struct_settup",
-      args = Seq(vpr.LocalVarDecl(s"empty", vpr.TypeVar("Struct"))().localVar,vpr.LocalVarDecl(s"$index", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
+      args = Seq(vpr.LocalVarDecl(s"$name", vpr.TypeVar("Struct"))().localVar,vpr.LocalVarDecl(s"$indexik", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
       typVarMap = typeVarMap(args map (_.typ))
     )(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar("Struct"), s"StructOps",vpr.NoTrafos)
  
     else vpr.DomainFuncApp(
       funcname = "struct_settup",
-      args = Seq(create(args.dropRight(1))(vpr.NoPosition,vpr.NoInfo,vpr.NoTrafos),vpr.LocalVarDecl(s"$index", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
+      args = Seq(create(args.dropRight(1))(vpr.NoPosition,vpr.NoInfo,vpr.NoTrafos),vpr.LocalVarDecl(s"$indexik", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
       typVarMap = typeVarMap(args map (_.typ))
     )(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar("Struct"), s"StructOps",vpr.NoTrafos)
   }
@@ -97,12 +99,7 @@ class TuplesImpl extends Tuples {
 
     // there are not quantified variables for tuples of 0 arity. Thus, do not generate any axioms in this case:
     
-    val domain = vpr.Domain(
-      domainName,
-      Seq(struct_get, struct_rev),
-      Nil,
-      typeVars
-    )()
+  
      val domain2 = vpr.Domain(name="Struct", typVars= Nil, functions = Seq(vpr.DomainFunc(s"struct_loc", Seq( vpr.LocalVarDecl("s",vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = domainName)),
     axioms=Nil
     
@@ -149,7 +146,7 @@ vpr.NamedDomainAxiom(
 
 
 
-    domains.update(arity, domain)
+    domains.update(arity, domain2)
  
     constructors.update(arity, tupleFunc)
     (0 until arity) foreach (ix => getters.update((ix, arity), getFuncs(ix)))

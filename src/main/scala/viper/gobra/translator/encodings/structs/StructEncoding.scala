@@ -9,6 +9,8 @@ package viper.gobra.translator.encodings.structs
 import org.bitbucket.inkytonik.kiama.==>
 import viper.gobra.ast.{internal => in}
 import viper.gobra.reporting.Source
+import viper.gobra.theory.Addressability
+
 import viper.gobra.theory.Addressability.{Exclusive, Shared}
 import viper.gobra.translator.Names
 import viper.gobra.translator.encodings.combinators.TypeEncoding
@@ -45,11 +47,17 @@ class StructEncoding extends TypeEncoding {
   }
 
   private val sh: SharedStructComponent = new SharedStructComponentImpl
+  private val sh2: SharedStructComponent = new SharedStructComponentImpl
 
   override def finalize(addMemberFn: vpr.Member => Unit): Unit = {
      
     ex.finalize(addMemberFn)
-    sh.finalize(addMemberFn)
+     sh.finalize(addMemberFn)
+     
+     sh.flag=2
+      sh.finalize(addMemberFn)
+    
+   
     shDfltFunc.finalize(addMemberFn)
   }
 
@@ -85,6 +93,7 @@ class StructEncoding extends TypeEncoding {
         x <- bind(l)(ctx)
         res <- seqns(fieldAccesses(x, fs).map(x => ctx.initialization(x)))
       } yield res
+      
   }
 
   /**
@@ -107,6 +116,7 @@ class StructEncoding extends TypeEncoding {
     */
   override def assignment(ctx: Context): (in.Assignee, in.Expr, in.Node) ==> CodeWriter[vpr.Stmt] = default(super.assignment(ctx)){
     case (in.Assignee((fa: in.FieldRef) :: _ / Exclusive), rhs, src) =>
+      
       ctx.assignment(in.Assignee(fa.recv), in.StructUpdate(fa.recv, fa.field, rhs)(src.info))(src)
 
     case (in.Assignee(lhs :: ctx.Struct(lhsFs) / Shared), rhs :: ctx.Struct(rhsFs), src) =>
@@ -115,6 +125,7 @@ class StructEncoding extends TypeEncoding {
         y <- bind(rhs)(ctx)
         lhsFAs = fieldAccesses(x, lhsFs).map(in.Assignee.Field)
         rhsFAs = fieldAccesses(y, rhsFs)
+       
         res <- seqns((lhsFAs zip rhsFAs).map { case (lhsFA, rhsFA) => ctx.assignment(lhsFA, rhsFA)(src) })
       } yield res
   }
@@ -190,24 +201,44 @@ class StructEncoding extends TypeEncoding {
     case (e: in.DfltVal) :: ctx.Struct(fs) / Exclusive =>
        
      val fieldDefaults = fs.map(f => in.DfltVal(f.typ)(e.info))
-     sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
+     
+
+      val name = ctx.freshNames.next()
+      val x = in.LocalVar(name, e.typ)(e.info)
+      val  vX = ctx.variable(x)
+      for {
+      _<- bind(x)(ctx)
+      
+      res<- ctx.expression(x)
+      
+      } yield res
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Shared =>
     val length= fs.length
     
-   val (pos, info, errT) = e.vprMeta
+    val (pos, info, errT) = e.vprMeta
      unit(shDfltFunc(Vector(vpr.IntLit(length)()), fs)(pos, info, errT)(ctx))
 
     case (lit: in.StructLit) :: ctx.Struct(fs) =>
-    /* val name = ctx.freshNames.next()
-     val x = in.LocalVar(name, lit.typ)(lit.info)
-      val  vX = variable(ctx)(x)
-      for {
+        val args = lit.args 
+        val name=ctx.freshNames.next()
+        val typek = in.StructT(Vector.empty, Addressability.Exclusive)
+       
+        val x = in.LocalVar(name, typek)(lit.info)
+        val  vX = ctx.variable(x)
+        val argsy = Vector(x) ++ args 
+        println(local(vX))
+        for {
+          _<-local(vX)
+
+          res <- (sequence((argsy).map(arg => ctx.expression(arg)))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
+
+
+        } yield res
+
         
-        _ <- local(vX)
-        res<- sequence(lit.args.map(arg => ctx.expression(arg))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
-      } yield res */
-      sequence(lit.args.map(arg => ctx.expression(arg))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
+        
+      
     case (loc: in.Location) :: ctx.Struct(_) / Shared =>
       sh.convertToExclusive(loc)(ctx, ex)
   }

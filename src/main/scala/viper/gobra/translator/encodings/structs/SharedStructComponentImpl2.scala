@@ -17,11 +17,10 @@ import viper.gobra.translator.context.Context
   * Right now, this is just a tuples domain with an additional injectivity axiom to enable quantified permissions.
   * Because of the injectivity axiom, the constructor has to be removed. Otherwise the axioms are inconsistent.
   * */
-class SharedStructComponentImpl extends SharedStructComponent {
-  
-
-  override def finalize(addMemberFn: vpr.Member => Unit): Unit = { if (flag!=1) {genDomains foreach addMemberFn} else {genDomains2 foreach addMemberFn}  }
+class SharedStructComponentImpl2 extends SharedStructComponentImpl {
  
+  override def finalize(addMemberFn: vpr.Member => Unit): Unit = {genDomains2 foreach addMemberFn }
+  
   private var genDomains: List[vpr.Domain] = List.empty
   private var genDomains2: List[vpr.Domain] = List.empty
   private var genArities: Set[Int] = Set.empty
@@ -144,7 +143,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
 
   /** Returns type of shared-struct domain. */
   override def typ(t: ComponentParameter)(ctx: Context): vpr.Type = {
-    val arity = 0
+    val arity = 1
       
     if (!(genArities contains arity)) genDomain(arity)(ctx)
 
