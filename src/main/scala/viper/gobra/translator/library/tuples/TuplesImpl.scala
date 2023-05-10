@@ -33,6 +33,7 @@ class TuplesImpl extends Tuples {
   }
 
   override def create(args: Vector[vpr.Exp])(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
+    println(args)
     val arity = args.size
     val index = arity - 1
     val value = if (index>= 0) args(index)
