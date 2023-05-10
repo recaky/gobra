@@ -26,6 +26,7 @@ import viper.silver.{ast => vpr}
 trait Context {
 
   // components
+
   def field: Fields
 
   def array: Arrays

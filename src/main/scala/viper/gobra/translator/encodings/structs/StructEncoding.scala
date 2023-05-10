@@ -89,7 +89,9 @@ class StructEncoding extends TypeEncoding {
     */
   override def initialization(ctx: Context): in.Location ==> CodeWriter[vpr.Stmt] = {
     case l :: ctx.Struct(fs) =>
+      
       for {
+        
         x <- bind(l)(ctx)
         res <- seqns(fieldAccesses(x, fs).map(x => ctx.initialization(x)))
       } yield res
@@ -121,6 +123,7 @@ class StructEncoding extends TypeEncoding {
 
     case (in.Assignee(lhs :: ctx.Struct(lhsFs) / Shared), rhs :: ctx.Struct(rhsFs), src) =>
       for {
+       
         x <- bind(lhs)(ctx)
         y <- bind(rhs)(ctx)
         lhsFAs = fieldAccesses(x, lhsFs).map(in.Assignee.Field)
@@ -187,12 +190,14 @@ class StructEncoding extends TypeEncoding {
   override def expression(ctx: Context): in.Expr ==> CodeWriter[vpr.Exp] = default(super.expression(ctx)){
     case (loc@ in.FieldRef(recv :: ctx.Struct(fs), field)) :: _ / Exclusive =>
       for {
+        
         vBase <- ctx.expression(recv)
         idx = indexOfField(fs, field)
       } yield ex.get(vBase, idx, cptParam(fs)(ctx))(loc)(ctx)
 
     case (upd: in.StructUpdate) :: ctx.Struct(fs) =>
       for {
+       
         vBase <- ctx.expression(upd.base)
         idx = indexOfField(fs, upd.field)
         vVal <- ctx.expression(upd.newVal)
@@ -200,20 +205,20 @@ class StructEncoding extends TypeEncoding {
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Exclusive =>
        
-     val fieldDefaults = fs.map(f => in.DfltVal(f.typ)(e.info))
-     
-
-      val name = ctx.freshNames.next()
-      val x = in.LocalVar(name, e.typ)(e.info)
-      val  vX = ctx.variable(x)
-      for {
-      _<- bind(x)(ctx)
-      
-      res<- ctx.expression(x)
-      
-      } yield res
+        val name=ctx.freshNames.next()
+        val typek = in.StructT(Vector.empty, Addressability.Exclusive)
+       
+        val x = in.LocalVar(name, typek)(e.info)
+        val  vX = ctx.variable(x)
+        val fieldDefaults = fs.map(f => in.DfltVal(f.typ)(e.info))
+        for {
+        _<-local(vX)
+        res <- sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
+        } yield res
+        
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Shared =>
+    
     val length= fs.length
     
     val (pos, info, errT) = e.vprMeta
@@ -227,9 +232,9 @@ class StructEncoding extends TypeEncoding {
         val x = in.LocalVar(name, typek)(lit.info)
         val  vX = ctx.variable(x)
         val argsy = Vector(x) ++ args 
-        println(local(vX))
+       
         for {
-          _<-local(vX)
+          _<- local(vX)
 
           res <- (sequence((argsy).map(arg => ctx.expression(arg)))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
 
@@ -240,6 +245,7 @@ class StructEncoding extends TypeEncoding {
         
       
     case (loc: in.Location) :: ctx.Struct(_) / Shared =>
+      
       sh.convertToExclusive(loc)(ctx, ex)
   }
 
@@ -253,7 +259,10 @@ class StructEncoding extends TypeEncoding {
     */
   override def reference(ctx: Context): in.Location ==> CodeWriter[vpr.Exp] = default(super.reference(ctx)){
     case (loc@ in.FieldRef(recv :: ctx.Struct(fs), field)) :: _ / Shared =>
+     
+      
       for {
+        
         vBase <- ctx.reference(recv.asInstanceOf[in.Location])
         idx = indexOfField(fs, field)
       } yield sh.get(vBase, idx, cptParam(fs)(ctx))(loc)(ctx)
@@ -265,8 +274,17 @@ class StructEncoding extends TypeEncoding {
     * An encoding for type T should be defined at all shared locations of type T.
     */
   override def addressFootprint(ctx: Context): (in.Location, in.Expr) ==> CodeWriter[vpr.Exp] = {
-    case (loc :: ctx.Struct(_) / Shared, perm) => sh.addressFootprint(loc, perm)(ctx)
-  }
+    case (loc :: ctx.Struct(_) / Shared, perm) => 
+    val name=ctx.freshNames.next()
+    val typek = in.StructT(Vector.empty, Addressability.Exclusive)
+       
+    val x = in.LocalVar(name, typek)(loc.info)
+    val  vX = ctx.variable(x)
+    for {
+        
+        res<-sh.addressFootprint(loc, perm)(ctx)
+  } yield res
+     } 
 
   /**
     * Encodes whether a value is comparable or not.
@@ -293,6 +311,7 @@ class StructEncoding extends TypeEncoding {
 
   /** Returns 'base'.f for every f in 'fields'. */
   private def fieldAccesses(base: in.Expr, fields: Vector[in.Field]): Vector[in.FieldRef] = {
+       
     fields.map(f => in.FieldRef(base, f)(base.info))
   }
 
