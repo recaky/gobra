@@ -189,6 +189,7 @@ class StructEncoding extends TypeEncoding {
     */
   override def expression(ctx: Context): in.Expr ==> CodeWriter[vpr.Exp] = default(super.expression(ctx)){
     case (loc@ in.FieldRef(recv :: ctx.Struct(fs), field)) :: _ / Exclusive =>
+      
       for {
         
         vBase <- ctx.expression(recv)
@@ -289,7 +290,9 @@ class StructEncoding extends TypeEncoding {
     * An encoding for type T should be defined at all shared locations of type T.
     */
   override def addressFootprint(ctx: Context): (in.Location, in.Expr) ==> CodeWriter[vpr.Exp] = {
+
     case (loc :: ctx.Struct(_) / Shared, perm) => 
+    
     val name=ctx.freshNames.next()
     val typek = in.StructT(Vector.empty, Addressability.Exclusive)
        
