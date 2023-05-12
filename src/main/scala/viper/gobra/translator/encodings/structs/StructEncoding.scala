@@ -309,6 +309,7 @@ class StructEncoding extends TypeEncoding {
     val x = in.LocalVar(name, typek)(loc.info)
     val  vX = ctx.variable(x)
     for {
+        _<-local (vX)
         
         res<-sh.addressFootprint(loc, perm)(ctx)
   } yield res

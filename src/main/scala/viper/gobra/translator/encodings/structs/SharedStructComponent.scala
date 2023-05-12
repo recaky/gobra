@@ -49,15 +49,16 @@ trait SharedStructComponent extends Generator {
         val arg = Vector(xa)
         
         val vti = cptParam(fs)(ctx)
+         val ydecl = vpr.LocalVarDecl(name,vpr.TypeVar("Struct"))().localVar
         
         pure(
           for {
-            
+            _<- global(vX)
             x <- bind(loc)(ctx)
            
-            locFAs = Vector (x) ++ fs.map(f => in.FieldRef(x, f)(loc.info))
+            locFAs =  fs.map(f => in.FieldRef(x, f)(loc.info))
             args <-  sequence(locFAs.map(fa => ctx.expression(fa)))
-          } yield ex.create(args, vti)(loc)(ctx)
+          } yield ex.create(Vector(ydecl) ++ args, vti)(loc)(ctx)
         )(ctx)
 
       case _ :: t => Violation.violation(s"expected struct, but got $t")
