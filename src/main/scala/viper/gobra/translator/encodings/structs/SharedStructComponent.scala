@@ -7,6 +7,7 @@
 package viper.gobra.translator.encodings.structs
 
 import viper.gobra.ast.{internal => in}
+import viper.gobra.theory.Addressability
 import viper.gobra.theory.Addressability.Shared
 import viper.gobra.translator.util.ViperWriter.CodeWriter
 import viper.silver.{ast => vpr}
@@ -39,12 +40,23 @@ trait SharedStructComponent extends Generator {
   def convertToExclusive(loc: in.Location)(ctx: Context, ex: ExclusiveStructComponent): CodeWriter[vpr.Exp] = {
     loc match {
       case _ :: ctx.Struct(fs) / Shared =>
+        
+        val name=ctx.freshNames.next()
+        val typek = in.StructT(Vector.empty, Addressability.Shared)
+       
+        val xa = in.LocalVar(name, typek)(loc.info)
+        val  vX = ctx.variable(xa)
+        val arg = Vector(xa)
+        
         val vti = cptParam(fs)(ctx)
+        
         pure(
           for {
+            
             x <- bind(loc)(ctx)
-            locFAs = fs.map(f => in.FieldRef(x, f)(loc.info))
-            args <- sequence(locFAs.map(fa => ctx.expression(fa)))
+           
+            locFAs = Vector (x) ++ fs.map(f => in.FieldRef(x, f)(loc.info))
+            args <-  sequence(locFAs.map(fa => ctx.expression(fa)))
           } yield ex.create(args, vti)(loc)(ctx)
         )(ctx)
 

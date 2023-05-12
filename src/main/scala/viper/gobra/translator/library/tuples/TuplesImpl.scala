@@ -43,7 +43,7 @@ class TuplesImpl extends Tuples {
     
 
 
-    if (arity<=2) { vpr.DomainFuncApp(
+    if (arity==2) { vpr.DomainFuncApp(
       funcname = "struct_settup",
       args = Seq(vpr.LocalVarDecl(s"$name", vpr.TypeVar("Struct"))().localVar,vpr.LocalVarDecl(s"$indexik", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
       typVarMap = typeVarMap(args map (_.typ))

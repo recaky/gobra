@@ -152,7 +152,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
 
     vpr.DomainType(
       domain = domains(arity),
-      typVarsMap = Map(vpr.TypeVar("T")->vpr.Ref)
+      typVarsMap =Map.empty
     )
   }
  

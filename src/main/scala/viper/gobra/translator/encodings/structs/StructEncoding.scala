@@ -43,7 +43,9 @@ class StructEncoding extends TypeEncoding {
   private val ex: ExclusiveStructComponent = new ExclusiveStructComponent{ // For now, we use a simple tuple domain.
     override def typ(vti: ComponentParameter)(ctx: Context): vpr.Type = ctx.tuple.typ(vti.map(_._1))
     override def get(base: vpr.Exp, idx: Int, vti: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = withSrc(ctx.tuple.get(base, idx, vti.size), src)
-    override def create(args: Vector[vpr.Exp], vti: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = { withSrc(ctx.tuple.create(args), src)}
+    override def create(args: Vector[vpr.Exp], vti: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = { 
+      println("1") 
+      withSrc(ctx.tuple.create(args), src)}
   }
 
   private val sh: SharedStructComponent = new SharedStructComponentImpl
@@ -89,7 +91,7 @@ class StructEncoding extends TypeEncoding {
     */
   override def initialization(ctx: Context): in.Location ==> CodeWriter[vpr.Stmt] = {
     case l :: ctx.Struct(fs) =>
-      
+     println("2") 
       for {
         
         x <- bind(l)(ctx)
@@ -117,11 +119,13 @@ class StructEncoding extends TypeEncoding {
     * [lhs: Struct{F}@ = rhs] -> FOREACH f in F: [lhs.f = rhs.f]
     */
   override def assignment(ctx: Context): (in.Assignee, in.Expr, in.Node) ==> CodeWriter[vpr.Stmt] = default(super.assignment(ctx)){
+   
     case (in.Assignee((fa: in.FieldRef) :: _ / Exclusive), rhs, src) =>
-      
+      println("3") 
       ctx.assignment(in.Assignee(fa.recv), in.StructUpdate(fa.recv, fa.field, rhs)(src.info))(src)
 
     case (in.Assignee(lhs :: ctx.Struct(lhsFs) / Shared), rhs :: ctx.Struct(rhsFs), src) =>
+      println("4") 
       for {
        
         x <- bind(lhs)(ctx)
@@ -151,6 +155,7 @@ class StructEncoding extends TypeEncoding {
     */
   override def equal(ctx: Context): (in.Expr, in.Expr, in.Node) ==> CodeWriter[vpr.Exp] = {
     case (lhs :: ctx.Struct(lhsFs), rhs :: ctx.Struct(rhsFs), src) =>
+      println("5") 
       val (pos, info, errT) = src.vprMeta
       pure(
         for {
@@ -163,6 +168,7 @@ class StructEncoding extends TypeEncoding {
       )(ctx)
 
     case (lhs :: ctx.*(ctx.Struct(lhsFs)) / Exclusive, rhs :: ctx.*(ctx.Struct(_)), src) =>
+      println("6") 
       if (lhsFs.isEmpty) {
         unit(withSrc(if (lhs == rhs) vpr.TrueLit() else ctx.unknownValue.unkownValue(vpr.Bool), src))
       } else {
@@ -187,9 +193,10 @@ class StructEncoding extends TypeEncoding {
     * R[ structLit(E) ] -> create_ex_struct( [e] | e in E )
     * R[ loc: Struct{F}@ ] -> convert_to_exclusive( Ref[loc] )
     */
-  override def expression(ctx: Context): in.Expr ==> CodeWriter[vpr.Exp] = default(super.expression(ctx)){
+  override def expression(ctx: Context): in.Expr ==> CodeWriter[vpr.Exp] =  default(super.expression(ctx)){
+    
     case (loc@ in.FieldRef(recv :: ctx.Struct(fs), field)) :: _ / Exclusive =>
-      
+      println("7")
       for {
         
         vBase <- ctx.expression(recv)
@@ -197,6 +204,7 @@ class StructEncoding extends TypeEncoding {
       } yield ex.get(vBase, idx, cptParam(fs)(ctx))(loc)(ctx)
 
     case (upd: in.StructUpdate) :: ctx.Struct(fs) =>
+      println("8") 
       val name=ctx.freshNames.next()
       val typek = in.StructT(Vector.empty, Addressability.Exclusive)
        
@@ -219,7 +227,7 @@ class StructEncoding extends TypeEncoding {
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Exclusive =>
         
-       
+        println("9") 
         val name=ctx.freshNames.next()
         val typek = in.StructT(Vector.empty, Addressability.Exclusive)
        
@@ -233,14 +241,14 @@ class StructEncoding extends TypeEncoding {
         
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Shared =>
-    
+    println("10") 
     val length= fs.length
     
     val (pos, info, errT) = e.vprMeta
      unit(shDfltFunc(Vector(vpr.IntLit(length)()), fs)(pos, info, errT)(ctx))
 
     case (lit: in.StructLit) :: ctx.Struct(fs) =>
-        
+        println("11") 
         val args = lit.args 
         val name=ctx.freshNames.next()
         val typek = in.StructT(Vector.empty, Addressability.Exclusive)
@@ -248,9 +256,10 @@ class StructEncoding extends TypeEncoding {
         val x = in.LocalVar(name, typek)(lit.info)
         val  vX = ctx.variable(x)
         val argsy = Vector(x) ++ args 
+        println(vX)
        
         for {
-          _<- local(vX)
+          _<- global(vX)
 
           res <- (sequence((argsy).map(arg => ctx.expression(arg)))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
 
@@ -261,8 +270,9 @@ class StructEncoding extends TypeEncoding {
         
       
     case (loc: in.Location) :: ctx.Struct(_) / Shared =>
-      
+      println("12") 
       sh.convertToExclusive(loc)(ctx, ex)
+      
   }
 
   /**
@@ -275,7 +285,7 @@ class StructEncoding extends TypeEncoding {
     */
   override def reference(ctx: Context): in.Location ==> CodeWriter[vpr.Exp] = default(super.reference(ctx)){
     case (loc@ in.FieldRef(recv :: ctx.Struct(fs), field)) :: _ / Shared =>
-     
+      println("13") 
       
       for {
         
@@ -290,9 +300,9 @@ class StructEncoding extends TypeEncoding {
     * An encoding for type T should be defined at all shared locations of type T.
     */
   override def addressFootprint(ctx: Context): (in.Location, in.Expr) ==> CodeWriter[vpr.Exp] = {
-
-    case (loc :: ctx.Struct(_) / Shared, perm) => 
     
+    case (loc :: ctx.Struct(_) / Shared, perm) => 
+    println("14") 
     val name=ctx.freshNames.next()
     val typek = in.StructT(Vector.empty, Addressability.Exclusive)
        
@@ -311,6 +321,7 @@ class StructEncoding extends TypeEncoding {
     */
   override def isComparable(ctx: Context): in.Expr ==> Either[Boolean, CodeWriter[vpr.Exp]] = {
     case exp :: ctx.Struct(fs) =>
+      println("15") 
       super.isComparable(ctx)(exp).map{ _ =>
         // if executed, then for all fields f, isComb[exp.f] != Left(false)
         val (pos, info, errT) = exp.vprMeta
@@ -329,12 +340,13 @@ class StructEncoding extends TypeEncoding {
 
   /** Returns 'base'.f for every f in 'fields'. */
   private def fieldAccesses(base: in.Expr, fields: Vector[in.Field]): Vector[in.FieldRef] = {
-       
+    println("16") 
     fields.map(f => in.FieldRef(base, f)(base.info))
   }
 
   private def indexOfField(fs: Vector[in.Field], f: in.Field): Int = {
     val idx = fs.indexOf(f)
+    println("17") 
     Violation.violation(idx >= 0, s"$idx, ${f.typ.addressability}, ${fs.map(_.typ.addressability)} - Did not find field $f in $fs")
     idx
   }
