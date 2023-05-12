@@ -40,10 +40,14 @@ class TuplesImpl extends Tuples {
     val value = if (!args.isEmpty) {args(index)}
     val indexik = index -1
     val name = if (!args.isEmpty) {args(0)}
-    
+    if (arity==1) { vpr.DomainFuncApp(
+      funcname = "struct_settup",
+      args = Seq(vpr.LocalVarDecl(s"$name", vpr.TypeVar("Struct"))().localVar,vpr.LocalVarDecl(s"$indexik", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
+      typVarMap = typeVarMap(args map (_.typ))
+    )(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar("Struct"), s"StructOps",vpr.NoTrafos)}
 
 
-    if (arity==2) { vpr.DomainFuncApp(
+    else if (arity==2) { vpr.DomainFuncApp(
       funcname = "struct_settup",
       args = Seq(vpr.LocalVarDecl(s"$name", vpr.TypeVar("Struct"))().localVar,vpr.LocalVarDecl(s"$indexik", vpr.Int)().localVar,vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
       typVarMap = typeVarMap(args map (_.typ))
