@@ -58,7 +58,7 @@ trait SharedStructComponent extends Generator {
            
             locFAs =  fs.map(f => in.FieldRef(x, f)(loc.info))
             args <-  sequence(locFAs.map(fa => ctx.expression(fa)))
-          } yield ex.create(Vector(ydecl) ++ args, vti)(loc)(ctx)
+          } yield ex.create(Vector() ++ args, vti)(loc)(ctx)
         )(ctx)
 
       case _ :: t => Violation.violation(s"expected struct, but got $t")

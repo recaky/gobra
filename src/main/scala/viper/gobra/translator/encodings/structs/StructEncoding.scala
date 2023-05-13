@@ -61,6 +61,7 @@ class StructEncoding extends TypeEncoding {
     
    
     shDfltFunc.finalize(addMemberFn)
+   
   }
 
   /**
@@ -209,7 +210,8 @@ class StructEncoding extends TypeEncoding {
       val typek = in.StructT(Vector.empty, Addressability.Exclusive)
        
         val x = in.LocalVar(name, typek)(upd.info)
-        val args= Vector (x)
+        //val args= Vector (x)
+        val args= Vector ()
         val  vX = ctx.variable(x)
       
       
@@ -233,7 +235,8 @@ class StructEncoding extends TypeEncoding {
        
         val x = in.LocalVar(name, typek)(e.info)
         val  vX = ctx.variable(x)
-        val fieldDefaults = Vector(x) ++ fs.map(f => in.DfltVal(f.typ)(e.info))
+        //val fieldDefaults = Vector(x) ++ fs.map(f => in.DfltVal(f.typ)(e.info))
+        val fieldDefaults = fs.map(f => in.DfltVal(f.typ)(e.info))
         for {
         _<-local(vX)
         res <- sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
@@ -255,7 +258,8 @@ class StructEncoding extends TypeEncoding {
        
         val x = in.LocalVar(name, typek)(lit.info)
         val  vX = ctx.variable(x)
-        val argsy = Vector(x) ++ args 
+       //val argsy = Vector(x) ++ args 
+        val argsy = args 
         println(vX)
        
         for {
@@ -361,11 +365,12 @@ class StructEncoding extends TypeEncoding {
   private val shDfltFunc: FunctionGenerator[Vector[in.Field]] = new FunctionGenerator[Vector[in.Field]] {
     private var genFunctions: List[vpr.Function] = List.empty
      override def finalize(addMemberFn: vpr.Member => Unit): Unit = {
-    genFunctions.headOption foreach addMemberFn
+    genFunctions.take(2) foreach addMemberFn
   }
     override def genFunction(fs: Vector[in.Field])(ctx: Context): vpr.Function = {
       val resType = in.StructT(fs, Shared)
       val vResType = typ(ctx)(resType)
+       
       val src = in.DfltVal(resType)(Source.Parser.Internal)
       // variable name does not matter because it is turned into a vpr.Result
       val resDummy = in.LocalVar("res", resType)(src.info)
@@ -398,7 +403,13 @@ class StructEncoding extends TypeEncoding {
         body = None
       )()
       genFunctions ::= fun
+   
       fun
     }
   }
+
+   
+
+
+
 }

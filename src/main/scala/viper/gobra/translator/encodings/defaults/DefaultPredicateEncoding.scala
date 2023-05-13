@@ -5,6 +5,9 @@
 // Copyright (c) 2011-2020 ETH Zurich.
 
 package viper.gobra.translator.encodings.defaults
+import viper.gobra.theory.Addressability
+
+import viper.gobra.theory.Addressability.{Exclusive, Shared}
 
 import org.bitbucket.inkytonik.kiama.==>
 import viper.gobra.ast.{internal => in}
@@ -92,6 +95,7 @@ class DefaultPredicateEncoding extends Encoding {
   override def assertion(ctx: Context): in.Assertion ==> CodeWriter[vpr.Exp] = {
     case acc@ in.Access(in.Accessible.Predicate(op: in.FPredicateAccess), perm) =>
       val (pos, info, errT) = acc.vprMeta
+      
       for {
         vArgs <- cl.sequence(op.args map ctx.expression)
         pacc = vpr.PredicateAccess(vArgs, op.pred.name)(pos, info, errT)
@@ -99,8 +103,15 @@ class DefaultPredicateEncoding extends Encoding {
       } yield vpr.PredicateAccessPredicate(pacc, vPerm)(pos, info, errT)
 
     case acc@ in.Access(in.Accessible.Predicate(op: in.MPredicateAccess), perm) =>
+      
       val (pos, info, errT) = acc.vprMeta
+      val name=ctx.freshNames.next()
+        val typek = in.StructT(Vector.empty, Addressability.Exclusive)
+       
+        val x = in.LocalVar(name, typek)(op.info)
+        val  vX = ctx.variable(x)
       for {
+        
         vRecv <- ctx.expression(op.recv)
         vArgs <- cl.sequence(op.args map ctx.expression)
         pacc = vpr.PredicateAccess(vRecv +: vArgs, op.pred.uniqueName)(pos, info, errT)
@@ -109,7 +120,9 @@ class DefaultPredicateEncoding extends Encoding {
   }
 
   override def statement(ctx: Context): in.Stmt ==> CodeWriter[vpr.Stmt] = {
+
     case fold: in.Fold =>
+      
       val (pos, info, errT) = fold.vprMeta
       for {
         a <- ctx.assertion(fold.acc)
@@ -117,6 +130,7 @@ class DefaultPredicateEncoding extends Encoding {
       } yield vpr.Fold(pap)(pos, info, errT)
 
     case unfold: in.Unfold =>
+      
       val (pos, info, errT) = unfold.vprMeta
       for {
         a <- ctx.assertion(unfold.acc)
@@ -126,6 +140,7 @@ class DefaultPredicateEncoding extends Encoding {
 
   override def expression(ctx: Context): in.Expr ==> CodeWriter[vpr.Exp] = {
     case unfold: in.Unfolding =>
+      
       val (pos, info, errT) = unfold.vprMeta
       for {
         a <- ctx.assertion(unfold.acc)
