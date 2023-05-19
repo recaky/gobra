@@ -19,7 +19,7 @@ class TuplesImpl extends Tuples {
     * Finalizes translation. `addMemberFn` is called with any member that is part of the encoding.
     */
   override def finalize(addMemberFn: vpr.Member => Unit): Unit = {
-    generatedDomains.take(2) foreach addMemberFn; genFunctions.headOption foreach addMemberFn
+    generatedDomains.take(2) foreach addMemberFn;  genFunctions foreach addMemberFn ; println(genFunctions)
   }
 
   override def typ(args: Vector[vpr.Type]): vpr.DomainType = {
@@ -221,6 +221,7 @@ vpr.NamedDomainAxiom(
         body = None
       )()
       genFunctions ::= fun2
+      
 
 
 

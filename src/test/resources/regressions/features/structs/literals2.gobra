@@ -23,3 +23,7 @@ func (x X) m() int
 func client3() {
 	T(X{}).m()
 }
+func client4() {
+	X{}.m()
+
+}
