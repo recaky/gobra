@@ -19,7 +19,7 @@ class TuplesImpl extends Tuples {
     * Finalizes translation. `addMemberFn` is called with any member that is part of the encoding.
     */
   override def finalize(addMemberFn: vpr.Member => Unit): Unit = {
-    generatedDomains.take(2) foreach addMemberFn;  genFunctions foreach addMemberFn ; println(genFunctions)
+    generatedDomains.take(2) foreach addMemberFn
   }
 
   override def typ(args: Vector[vpr.Type]): vpr.DomainType = {
@@ -146,6 +146,7 @@ class TuplesImpl extends Tuples {
     val domainVar = domainDecl.localVar
     val struct_get =  vpr.DomainFunc(s"struct_gettup", Seq(vpr.LocalVarDecl("l",vpr.Int)()), vpr.TypeVar(s"T"))(domainName = domainName)
     val struct_lengthtup =  vpr.DomainFunc(s"struct_lengthtup", Seq(vpr.LocalVarDecl("x",vpr.TypeVar("Struct"))()), vpr.Int)(domainName = domainName)
+    val default =  vpr.DomainFunc(s"default_tuple", Seq(vpr.LocalVarDecl("l",vpr.Int)()), vpr.TypeVar("Struct"))(domainName = domainName)
     
     val struct_rev =   vpr.DomainFunc(s"struct_settup", Seq(vpr.LocalVarDecl("s",vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m",vpr.Int)(),vpr.LocalVarDecl("t",vpr.TypeVar(s"T"))()), vpr.TypeVar(s"Struct"))(domainName = domainName)
    
@@ -197,30 +198,32 @@ vpr.NamedDomainAxiom(
         )())()
       )(domainName = domainName)
 }
-    val domain3 = vpr.Domain(name="StructOps", typVars= (0 until 1) map (i=> vpr.TypeVar("T")), functions = Seq(struct_get, struct_rev, struct_lengthtup),
-    axioms=Seq(first,second)
+val third = {
+vpr.NamedDomainAxiom(name= "axiom3", exp=vpr.Forall(Seq(vpr.LocalVarDecl("m", vpr.Int)()),Seq(vpr.Trigger(Seq(vpr.DomainFuncApp("default_tuple", Seq(vpr.LocalVarDecl("m", vpr.Int)().localVar),typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar("Struct"), s"da",vpr.NoTrafos )))()), vpr.EqCmp(vpr.LocalVarDecl("m", vpr.Int)().localVar,vpr.DomainFuncApp("struct_lengthtup", Seq(vpr.DomainFuncApp("default_tuple", Seq(vpr.LocalVarDecl("m", vpr.Int)().localVar),typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar("Struct"), s"da",vpr.NoTrafos ) ),typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"da",vpr.NoTrafos ))())() )(domainName = domainName)
+
+
+
+
+
+
+}
+    val domain3 = vpr.Domain(name="StructOps", typVars= (0 until 1) map (i=> vpr.TypeVar("T")), functions = Seq(struct_get, struct_rev, struct_lengthtup, default),
+    axioms=Seq(first,second, third)
     
     )()
    val domainType= vpr.TypeVar("Struct")
    
    val typeVarMap = (typeVars zip typeVars).toMap
-   val fun2= vpr.Function(
+  /* val fun2= vpr.Function(
         name = s"default_tuple",
         formalArgs = Seq(vpr.LocalVarDecl("length", vpr.TypeVar(s"Int"))()),
         typ = vpr.TypeVar("Struct"),  
         pres = Seq(synthesized(termination.DecreasesWildcard(None))("This function is assumed to terminate"))
         ,
-        posts = Seq(vpr.Forall(Seq(vpr.LocalVarDecl("location", vpr.TypeVar(s"Int"))()),Nil,
-        vpr.Implies(
-          vpr.And(vpr.GeCmp(
-            vpr.LocalVarDecl("location", domainType)().localVar,vpr.IntLit(0)())(),
-        vpr.LtCmp(vpr.LocalVarDecl("location", domainType)().localVar,vpr.DomainFuncApp(s"struct_lengthtup", Seq(vpr.LocalVarDecl("result", domainType)().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos ))())(),
-        vpr.And(vpr.EqCmp(vpr.LocalVarDecl("length", domainType)().localVar,vpr.DomainFuncApp(s"struct_lengthtup", Seq(vpr.LocalVarDecl("result", domainType)().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos ))(),vpr.EqCmp(
-          vpr.DomainFuncApp(s"struct_gettup", Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.LocalVarDecl("result", vpr.TypeVar(s"Struct"))().localVar,vpr.LocalVarDecl("location", vpr.TypeVar(s"Int"))().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Ref"), s"da",vpr.NoTrafos )
-          ,vpr.LocalVarDecl("null", domainType)().localVar)())())())()),
+        posts = Seq(vpr.EqCmp(vpr.LocalVarDecl("length", domainType)().localVar,vpr.DomainFuncApp(s"struct_lengthtup", Seq(vpr.LocalVarDecl("result", domainType)().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"Int"), s"da",vpr.NoTrafos ))()),
         body = None
       )()
-      genFunctions ::= fun2
+      genFunctions ::= fun2 */
       
 
 

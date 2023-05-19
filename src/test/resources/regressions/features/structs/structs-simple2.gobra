@@ -34,7 +34,7 @@ func client() {
     assert x.val == 42 && y == cell{17};
 
     //:: ExpectedOutput(assert_error:assertion_error)
-    assert false;
+    assert false; 
 };
 
 
