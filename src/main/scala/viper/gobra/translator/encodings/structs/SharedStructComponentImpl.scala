@@ -20,7 +20,7 @@ import viper.gobra.translator.context.Context
 class SharedStructComponentImpl extends SharedStructComponent {
   
 
-  override def finalize(addMemberFn: vpr.Member => Unit): Unit = { if (flag!=1) {genDomains foreach addMemberFn} else {genDomains2 foreach addMemberFn}  }
+  override def finalize(addMemberFn: vpr.Member => Unit): Unit = { if (flag!=1) {genDomains.take(1) foreach addMemberFn} else {genDomains2.take(1) foreach addMemberFn}  }
  
   private var genDomains: List[vpr.Domain] = List.empty
   private var genDomains2: List[vpr.Domain] = List.empty
@@ -139,7 +139,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
     
     if (!(genArities contains arity)) genDomain(ctx)
     val (pos, info, errT) = src.vprMeta
-    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_get", Nil, vpr.Ref)(domainName = s"ShStructOps"), Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(base,vpr.LocalVarDecl(s"$idx", vpr.Int)().localVar), base.typ.asInstanceOf[vpr.DomainType].typVarsMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), base.typ.asInstanceOf[vpr.DomainType].typVarsMap)(pos, info, errT)
+    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_get", Nil, vpr.Ref)(domainName = s"ShStructOps"), Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(base,vpr.LocalVarDecl(s"$idx", vpr.Int)().localVar), base.typ.asInstanceOf[vpr.DomainType].typVarsMap)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar("T"), domainName,vpr.NoTrafos )), base.typ.asInstanceOf[vpr.DomainType].typVarsMap)(pos, info, errT)
   }
 
 
