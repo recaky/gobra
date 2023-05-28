@@ -26,11 +26,6 @@ class SharedStructComponentImpl extends SharedStructComponent {
   private var genDomains2: List[vpr.Domain] = List.empty
   private var genArities: Set[Int] = Set.empty
   private var domains: Map[Int, vpr.Domain] = Map.empty
-  
-  
-
-
-  
   private def genDomain(ctx: Context): Unit = {
    
     val domainName2: String = s"ShStructOps"
@@ -117,6 +112,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
   /** Returns type of shared-struct domain. */
   override def typ(t: ComponentParameter)(ctx: Context): vpr.Type = {
     val arity = 0
+    val domainType = vpr.DomainType ("ShStruct", Map (vpr.TypeVar(s"ShStruct")->vpr.TypeVar(s"ShStruct")))(Seq.empty)
       
     if (!(genArities contains arity)) genDomain(ctx)
 
@@ -124,7 +120,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
 
     vpr.DomainType(
       domain = domains(arity),
-      typVarsMap =Map(vpr.TypeVar("T")->vpr.TypeVar("T"))
+      typVarsMap =Map(vpr.TypeVar("T")->vpr.Ref, vpr.TypeVar("T")-> domainType)
     )
   }
  
