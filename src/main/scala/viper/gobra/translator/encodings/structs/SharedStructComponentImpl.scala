@@ -34,7 +34,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
     val ShStruct = vpr.TypeVar(s"ShStruct")
     val typeVars = Seq(T)
     val typeVarMap = (typeVars zip typeVars).toMap
-    
+    val domainType = vpr.DomainType (domainName, Map (vpr.TypeVar(s"ShStruct")->vpr.TypeVar(s"ShStruct")))(Seq.empty)
     val xdecl = vpr.LocalVarDecl("x",ShStruct)()
     val x = xdecl.localVar
     val ydecl = vpr.LocalVarDecl("y",ShStruct)()
@@ -52,7 +52,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
     val eqAppTrigger = vpr.Trigger(Seq(eqApp))()
     val struct_get =  vpr.DomainFunc(s"struct_get", Seq(ldecl), T)(domainName = domainName2)
     val struct_length =   vpr.DomainFunc(s"struct_length", Seq(xdecl), vpr.Int)(domainName = domainName2)
-    val struct_rev =   vpr.DomainFunc(s"struct_rev", Seq(vdecl), ShStruct)(domainName = domainName2)
+    val struct_rev =   vpr.DomainFunc(s"struct_rev", Seq(vdecl), domainType)(domainName = domainName2)
    
 
     val injective = {
@@ -64,7 +64,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
             vpr.And(vpr.LtCmp(l,vpr.DomainFuncApp(s"struct_length", Seq(x), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName2,vpr.NoTrafos ))() ,
             vpr.EqCmp(
             
-         vpr.DomainFuncApp(s"struct_rev" , Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName2,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )),typeVarMap)(vpr.NoPosition,vpr.NoInfo, ShStruct, domainName2,vpr.NoTrafos)
+         vpr.DomainFuncApp(s"struct_rev" , Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName2,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )),typeVarMap)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos)
           
             
             ,x)()
@@ -92,11 +92,11 @@ class SharedStructComponentImpl extends SharedStructComponent {
     }
     val domain2 = vpr.Domain(
       name = domainName2,
-      typVars = Seq(T),
+      typVars = Seq(vpr.TypeVar("TE")),
       functions =  Seq(struct_get,struct_length, struct_rev),
       axioms = Seq(equalityAxiom2,injective)
     )()
-    val domain = vpr.Domain(name=domainName, typVars= Nil, functions = Seq(vpr.DomainFunc(s"shstruct_loc", Seq( vpr.LocalVarDecl("s",ShStruct)(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = domainName)),
+    val domain = vpr.Domain(name=domainName, typVars= Nil, functions = Seq(vpr.DomainFunc(s"shstruct_loc", Seq( vpr.LocalVarDecl("s",domainType)(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = domainName)),
     axioms=Nil
     
     )()
@@ -129,13 +129,11 @@ class SharedStructComponentImpl extends SharedStructComponent {
   override def get(base: vpr.Exp, idx: Int, t: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = {
     val arity = 0
     val domainName: String = s"ShStructOps"
-    
-   
-  
-    
     if (!(genArities contains arity)) genDomain(ctx)
     val (pos, info, errT) = src.vprMeta
-    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_get", Nil, vpr.TypeVar("T"))(domainName = s"ShStructOps"), Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(base,vpr.LocalVarDecl(s"$idx", vpr.Int)().localVar), base.typ.asInstanceOf[vpr.DomainType].typVarsMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), base.typ.asInstanceOf[vpr.DomainType].typVarsMap)(pos, info, errT)
+    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_get", Nil, vpr.TypeVar("Tecko"))(domainName = s"ShStructOps"), 
+    Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(base,vpr.LocalVarDecl(s"$idx", vpr.Int)().localVar), 
+    base.typ.asInstanceOf[vpr.DomainType].typVarsMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), base.typ.asInstanceOf[vpr.DomainType].typVarsMap)(pos, info, errT)
   }
 
 

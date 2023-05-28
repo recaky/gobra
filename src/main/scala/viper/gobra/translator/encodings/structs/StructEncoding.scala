@@ -365,7 +365,7 @@ class StructEncoding extends TypeEncoding {
   private val shDfltFunc: FunctionGenerator[Vector[in.Field]] = new FunctionGenerator[Vector[in.Field]] {
     private var genFunctions: List[vpr.Function] = List.empty
      override def finalize(addMemberFn: vpr.Member => Unit): Unit = {
-    genFunctions.take(2) foreach addMemberFn
+    genFunctions.take(1) foreach addMemberFn
   }
     override def genFunction(fs: Vector[in.Field])(ctx: Context): vpr.Function = {
       val resType = in.StructT(fs, Shared)
