@@ -36,7 +36,6 @@ class TuplesImpl extends Tuples {
 
   override def create(args: Vector[vpr.Exp])(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
     addNTuplesDomain(0);
-     
     val domainName= "Struct"
     val domainType = vpr.DomainType (domainName, Map (vpr.TypeVar(s"Struct")->vpr.TypeVar(s"Struct")))(Seq.empty)
     println(args)
