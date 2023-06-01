@@ -60,16 +60,16 @@ class TuplesImpl extends Tuples {
     val index = arity - 1
     val value = if (!args.isEmpty) {args(index)}
     val indexik = index 
-    val name = s"default_tuple($fields)"
+    
       if (arity==1) { vpr.DomainFuncApp(
       funcname = "struct_settup",
-      args = Seq(vpr.LocalVarDecl(s"$name", domainType)().localVar,vpr.IntLit(indexik)(),vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
+      args = Seq(vpr.DomainFuncApp("default_tuple",Seq(vpr.IntLit(fields)()),Map.empty)(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos),vpr.IntLit(indexik)(),args(index)),
       typVarMap = Map.empty
     )(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos)}
  
     else vpr.DomainFuncApp(
       funcname = "struct_settup",
-      args = Seq(helper(args.dropRight(1),fields)(vpr.NoPosition,vpr.NoInfo,vpr.NoTrafos),vpr.IntLit(indexik)(),vpr.LocalVarDecl(s"$value", vpr.Int)().localVar),
+      args = Seq(helper(args.dropRight(1),fields)(vpr.NoPosition,vpr.NoInfo,vpr.NoTrafos),vpr.IntLit(indexik)(),args(index)),
       typVarMap = Map.empty
     )(vpr.NoPosition,vpr.NoInfo, domainType, s"StructOps",vpr.NoTrafos)
 
@@ -86,7 +86,7 @@ class TuplesImpl extends Tuples {
 
   override def get(arg: vpr.Exp, index: Int, arity: Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
     addNTuplesDomain(0);
-    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.Ref)(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = arg.typ.asInstanceOf[vpr.DomainType].typVarsMap)(pos, info, errT)
+    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, arg.typ)(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = arg.typ.asInstanceOf[vpr.DomainType].typVarsMap)(pos, info, errT)
   
   }
 
