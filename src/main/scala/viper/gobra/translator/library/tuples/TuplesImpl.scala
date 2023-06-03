@@ -46,7 +46,7 @@ class TuplesImpl extends Tuples {
   }
   def helper (args: Vector[vpr.Exp], fields:Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
     val domainName= "Struct"
-    val domainName2= "ShStruct"
+    
     val domainType = vpr.DomainType (domainName, Map.empty)(Seq.empty)
     val arity = args.size
     val index = arity - 1
@@ -56,13 +56,13 @@ class TuplesImpl extends Tuples {
       if (arity==1) { vpr.DomainFuncApp(
       funcname = "struct_settup",
       args = Seq(vpr.DomainFuncApp("default_tuple",Seq(vpr.IntLit(fields)()),Map.empty)(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos),vpr.IntLit(indexik)(),args(index)),
-      typVarMap = Map.empty
+      typVarMap = Map(vpr.TypeVar("T")->args(index).typ)
     )(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos)}
  
     else vpr.DomainFuncApp(
       funcname = "struct_settup",
       args = Seq(helper(args.dropRight(1),fields)(vpr.NoPosition,vpr.NoInfo,vpr.NoTrafos),vpr.IntLit(indexik)(),args(index)),
-      typVarMap = Map.empty
+      typVarMap = Map(vpr.TypeVar("T")->args(index).typ)
     )(vpr.NoPosition,vpr.NoInfo, domainType, s"StructOps",vpr.NoTrafos)
 
 
@@ -118,7 +118,7 @@ def generatedDomains: List[vpr.Domain] = _generatedDomains
     val t=vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))().localVar
     val m=vpr.LocalVarDecl("m", vpr.Int)().localVar
     val n=vpr.LocalVarDecl("n", vpr.Int)().localVar
-    println(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.VirtualPosition("virtual"),vpr.NoInfo,vpr.DomainType(domain2,Map.empty), domainName2,vpr.NoTrafos ).typ);
+    println(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo,vpr.DomainType(domain2,Map.empty), domainName2,vpr.NoTrafos ).typ);
     
 val first = {
 

@@ -400,8 +400,8 @@ class StructEncoding extends TypeEncoding {
             vpr.LocalVarDecl("location", vpr.Int)().localVar,vpr.IntLit(0)())(),
         vpr.LtCmp(vpr.LocalVarDecl("location", vpr.Int)().localVar,vpr.DomainFuncApp(s"struct_length", Seq(vpr.Result(vResType)()), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStructOps",vpr.NoTrafos ))())(),
         vpr.And(vpr.EqCmp(vpr.LocalVarDecl("length", vpr.Int)().localVar,vpr.DomainFuncApp(s"struct_length", Seq(vpr.Result(vResType)()), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStructOps",vpr.NoTrafos ))(),vpr.EqCmp(
-          vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(vpr.Result(vResType)(),vpr.LocalVarDecl("location", vpr.Int)().localVar), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStruct",vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Ref, s"ShStructOps",vpr.NoTrafos )
-          ,vpr.LocalVarDecl("null", vpr.Int)().localVar)())())())()),
+          vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(vpr.Result(vResType)(),vpr.LocalVarDecl("location", vpr.Int)().localVar), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStruct",vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Ref, s"ShStructOps",vpr.NoTrafos )
+          ,vpr.NullLit()())())())())()),
         body = None
       )()
       genFunctions ::= fun

@@ -34,7 +34,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
     val ShStruct = vpr.TypeVar(s"ShStruct")
     val typeVars = Seq(T)
     val typeVarMap = (typeVars zip typeVars).toMap
-    val domainType = vpr.DomainType (domainName, Map (vpr.TypeVar(s"ShStruct")->vpr.TypeVar(s"ShStruct")))(Seq.empty)
+    val domainType = vpr.DomainType (domainName, Map.empty)(Seq.empty)
     val xdecl = vpr.LocalVarDecl("x",domainType)()
     val x = xdecl.localVar
     val ydecl = vpr.LocalVarDecl("y",domainType)()
@@ -60,18 +60,18 @@ class SharedStructComponentImpl extends SharedStructComponent {
        vpr.AnonymousDomainAxiom(
         vpr.Forall(
            Seq(xdecl,ldecl),
-           Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int,domainName2,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )))()), vpr.And(vpr.GeCmp(l,vpr.IntLit(0)())(),
+           Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int,domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )))()), vpr.And(vpr.GeCmp(l,vpr.IntLit(0)())(),
             vpr.And(vpr.LtCmp(l,vpr.DomainFuncApp(s"struct_length", Seq(x), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName2,vpr.NoTrafos ))() ,
             vpr.EqCmp(
             
-         vpr.DomainFuncApp(s"struct_rev" , Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName2,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )),typeVarMap)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos)
+         vpr.DomainFuncApp(s"struct_rev" , Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )),typeVarMap)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos)
           
             
             ,x)()
             
             
             )())())()
-        )(domainName = domainName)
+        )(domainName = domainName2)
 
     }
     val lenghtequality = vpr.EqCmp(vpr.DomainFuncApp(s"struct_length", Seq(x), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName2,vpr.NoTrafos ),
@@ -112,7 +112,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
   /** Returns type of shared-struct domain. */
   override def typ(t: ComponentParameter)(ctx: Context): vpr.Type = {
     val arity = 0
-    val domainType = vpr.DomainType ("ShStruct", Map (vpr.TypeVar(s"ShStruct")->vpr.TypeVar(s"ShStruct")))(Seq.empty)
+    val domainType = vpr.DomainType ("ShStruct", Map.empty)(Seq.empty)
     
     if (!(genArities contains arity)) genDomain(ctx)
     val typeVarMap = (domains(arity+1).typVars zip (t map (_._1))).toMap
@@ -128,12 +128,12 @@ class SharedStructComponentImpl extends SharedStructComponent {
   /** Getter of shared-struct domain. */
   override def get(base: vpr.Exp, idx: Int, t: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = {
     val arity = 0
-    val domainName: String = s"ShStructOps"
+    val domainName: String = s"ShStruct"
     if (!(genArities contains arity)) genDomain(ctx)
     val typeVarMap = (domains(arity+1).typVars zip (t map (_._1))).toMap
     val (pos, info, errT) = src.vprMeta
     vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_get", Nil, vpr.TypeVar("T"))(domainName = s"ShStructOps"), 
-    Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(base,vpr.LocalVarDecl(s"$idx", vpr.Int)().localVar), 
+    Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(base,vpr.IntLit(idx)()), 
     typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(pos, info, errT)
   }
 
