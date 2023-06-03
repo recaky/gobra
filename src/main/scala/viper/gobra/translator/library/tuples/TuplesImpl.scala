@@ -22,15 +22,15 @@ class TuplesImpl extends Tuples {
     generatedDomains.take(2) foreach addMemberFn
   }
 
-  
+  val domainType = vpr.DomainType ("Struct", Map.empty)(Seq.empty)
 
   
 
   override def create(args: Vector[vpr.Exp])(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
     addNTuplesDomain(0);
     val domainName= "Struct"
-    val domainType = vpr.DomainType (domainName, Map.empty)(Seq.empty)
-    println(args)
+    
+    
     val arity = args.size
     
     
@@ -47,7 +47,7 @@ class TuplesImpl extends Tuples {
   def helper (args: Vector[vpr.Exp], fields:Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
     val domainName= "Struct"
     
-    val domainType = vpr.DomainType (domainName, Map.empty)(Seq.empty)
+    
     val arity = args.size
     val index = arity - 1
     val value = if (!args.isEmpty) {args(index)}
@@ -94,7 +94,7 @@ def generatedDomains: List[vpr.Domain] = _generatedDomains
   private def addNTuplesDomain(arity: Int): Unit = {
     val domainName = s"Struct"
    val domainName2: String = s"StructOps"
-    val domainType = vpr.DomainType (domainName, Map.empty)(Seq.empty)
+    
     val struct_get =  vpr.DomainFunc(s"struct_gettup", Seq(vpr.LocalVarDecl("l",vpr.Int)()), vpr.TypeVar(s"T"))(domainName = domainName2)
     val struct_lengthtup =  vpr.DomainFunc(s"struct_lengthtup", Seq(vpr.LocalVarDecl("x",domainType)()), vpr.Int)(domainName = domainName2)
     val default =  vpr.DomainFunc(s"default_tuple", Seq(vpr.LocalVarDecl("l",vpr.Int)()), domainType)(domainName = domainName2)
@@ -118,17 +118,17 @@ def generatedDomains: List[vpr.Domain] = _generatedDomains
     val t=vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))().localVar
     val m=vpr.LocalVarDecl("m", vpr.Int)().localVar
     val n=vpr.LocalVarDecl("n", vpr.Int)().localVar
-    println(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo,vpr.DomainType(domain2,Map.empty), domainName2,vpr.NoTrafos ).typ);
+    
     
 val first = {
 
 vpr.NamedDomainAxiom(
         name = s"get_set_0_ax",
         exp = vpr.Forall(
-          Seq(vpr.LocalVarDecl("s", vpr.DomainType(domain2,Map.empty))(),vpr.LocalVarDecl("m", vpr.Int)(), vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))()),
-          Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo,vpr.DomainType(domain2,Map.empty), domainName2,vpr.NoTrafos ),m), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )))()),
+          Seq(vpr.LocalVarDecl("s", domainType)(),vpr.LocalVarDecl("m", vpr.Int)(), vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))()),
+          Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo,domainType, domainName2,vpr.NoTrafos ),m), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )))()),
          vpr.EqCmp(
-               vpr.DomainFuncApp(s"struct_gettup", Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.DomainType(domain2,Map.empty), domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )),typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), domainName2,vpr.NoTrafos ),
+               vpr.DomainFuncApp(s"struct_gettup", Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )),typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), domainName2,vpr.NoTrafos ),
                 vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))().localVar)()
         )()
       )(domainName = domainName)
@@ -137,12 +137,12 @@ val second = {
 vpr.NamedDomainAxiom(
         name = s"get_set_1_ax",
         exp = vpr.Forall(
-          Seq(vpr.LocalVarDecl("s", vpr.DomainType(domain2,Map.empty))(),vpr.LocalVarDecl("m", vpr.Int)(),vpr.LocalVarDecl("n", vpr.Int)(), vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))()),
-          Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.DomainType(domain2,Map.empty), domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )))()),
+          Seq(vpr.LocalVarDecl("s", domainType)(),vpr.LocalVarDecl("m", vpr.Int)(),vpr.LocalVarDecl("n", vpr.Int)(), vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))()),
+          Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )))()),
          vpr.Implies(vpr.NeCmp(m,n)(),vpr.EqCmp(
           
           vpr.DomainFuncApp(s"struct_loc", Seq(s,m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos ) ,
-                vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.DomainType(domain2,Map.empty), domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )
+                vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )
                          )()
         )())()
       )(domainName = domainName)

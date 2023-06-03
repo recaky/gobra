@@ -31,7 +31,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
     val domainName2: String = s"ShStructOps"
     val domainName : String = s"ShStruct"
     val T = vpr.TypeVar("T")
-    val ShStruct = vpr.TypeVar(s"ShStruct")
+    
     val typeVars = Seq(T)
     val typeVarMap = (typeVars zip typeVars).toMap
     val domainType = vpr.DomainType (domainName, Map.empty)(Seq.empty)
