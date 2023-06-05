@@ -23,11 +23,13 @@ class TuplesImpl extends Tuples {
   }
 
   val domainType = vpr.DomainType ("Struct", Map.empty)(Seq.empty)
-
+  val domain2 = vpr.Domain(name="Struct", typVars= Nil, functions = Seq(vpr.DomainFunc(s"struct_loc", Seq( vpr.LocalVarDecl("s",domainType)(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = "Struct")),
+    axioms=Nil)()
+   
   
 
   override def create(args: Vector[vpr.Exp])(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
-    addNTuplesDomain(0);
+     if (_generatedDomains.size== 0) {addNTuplesDomain(0);}
     val domainName= "Struct"
     
     
@@ -77,9 +79,9 @@ class TuplesImpl extends Tuples {
 
 
   override def get(arg: vpr.Exp, index: Int, arity: Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
-    addNTuplesDomain(0);
+     if (_generatedDomains.size== 0) {addNTuplesDomain(0);}
    println(arg.typ.asInstanceOf[vpr.DomainType].typVarsMap)
-    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar("T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map(vpr.TypeVar("T")->vpr.Int))(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = Map(vpr.TypeVar("T")->vpr.Int))(pos, info, errT)
+    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar("T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map(vpr.TypeVar("T")->vpr.Ref))(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = Map(vpr.TypeVar("T")->vpr.Ref))(pos, info, errT)
   
   }
 
@@ -109,8 +111,7 @@ def generatedDomains: List[vpr.Domain] = _generatedDomains
     // there are not quantified variables for tuples of 0 arity. Thus, do not generate any axioms in this case:
     
   
-    val domain2 = vpr.Domain(name="Struct", typVars= Nil, functions = Seq(vpr.DomainFunc(s"struct_loc", Seq( vpr.LocalVarDecl("s",domainType)(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = domainName)),
-    axioms=Nil)()
+    
  
     val typeVarsi = Seq(vpr.TypeVar(s"T"))
     val typeVarMapka = (typeVarsi zip typeVarsi).toMap
@@ -157,14 +158,11 @@ vpr.NamedDomainAxiom(name= "axiom3", exp=vpr.Forall(Seq(vpr.LocalVarDecl("m", vp
 
   }
   override def typ(args: Vector[vpr.Type]): vpr.DomainType = {
-    addNTuplesDomain(0);
+    if (_generatedDomains.size== 0) {addNTuplesDomain(0);}
   
   vpr.DomainType(
-      domain = vpr.Domain(name="Struct", typVars= Nil, functions = Seq(vpr.DomainFunc(s"struct_loc", Seq( vpr.LocalVarDecl("s",vpr.TypeVar(s"Struct"))(),vpr.LocalVarDecl("m",vpr.Int)()), vpr.Int)(domainName = "Struct")),
-    axioms=Nil
-    
-    )(),
-      typVarsMap =  (_generatedDomains(0).typVars zip (args)).toMap 
+      domain = domain2,
+      typVarsMap = if (args.size!=0) {Map(vpr.TypeVar("T")-> (args(0)))} else {Map.empty}
     )
   }
   
