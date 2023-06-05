@@ -80,8 +80,8 @@ class TuplesImpl extends Tuples {
 
   override def get(arg: vpr.Exp, index: Int, arity: Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
      if (_generatedDomains.size== 0) {addNTuplesDomain(0);}
-   println(arg.typ.asInstanceOf[vpr.DomainType].typVarsMap)
-    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar("T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map(vpr.TypeVar("T")->vpr.Ref))(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = Map(vpr.TypeVar("T")->vpr.Ref))(pos, info, errT)
+   
+    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar("T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map(vpr.TypeVar("T")->flag(index)))(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = Map(vpr.TypeVar("T")->flag(index)))(pos, info, errT)
   
   }
 
@@ -160,10 +160,7 @@ vpr.NamedDomainAxiom(name= "axiom3", exp=vpr.Forall(Seq(vpr.LocalVarDecl("m", vp
   override def typ(args: Vector[vpr.Type]): vpr.DomainType = {
     if (_generatedDomains.size== 0) {addNTuplesDomain(0);}
   
-  vpr.DomainType(
-      domain = domain2,
-      typVarsMap = if (args.size!=0) {Map(vpr.TypeVar("T")-> (args(0)))} else {Map.empty}
-    )
+ domainType
   }
   
 }

@@ -10,6 +10,7 @@ import viper.gobra.translator.library.Generator
 import viper.silver.{ast => vpr}
 
 trait Tuples extends Generator {
+  var flag:Vector[vpr.Type] = Vector.empty
 
   def typ(args: Vector[vpr.Type]): vpr.DomainType
 
