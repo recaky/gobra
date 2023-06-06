@@ -40,7 +40,7 @@ class TuplesImpl extends Tuples {
     if (arity==0) { vpr.DomainFuncApp(
       funcname = "default_tuple",
       args = Seq(vpr.IntLit(0)()),
-      typVarMap = Map.empty
+      typVarMap = Map(vpr.TypeVar("T")->vpr.Int)
     )(vpr.NoPosition,vpr.NoInfo, domainType, s"StructOps",vpr.NoTrafos)}
 
 
@@ -57,7 +57,7 @@ class TuplesImpl extends Tuples {
     
       if (arity==1) { vpr.DomainFuncApp(
       funcname = "struct_settup",
-      args = Seq(vpr.DomainFuncApp("default_tuple",Seq(vpr.IntLit(fields)()),Map.empty)(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos),vpr.IntLit(indexik)(),args(index)),
+      args = Seq(vpr.DomainFuncApp("default_tuple",Seq(vpr.IntLit(fields)()),Map(vpr.TypeVar("T")->args(index).typ))(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos),vpr.IntLit(indexik)(),args(index)),
       typVarMap = Map(vpr.TypeVar("T")->args(index).typ)
     )(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos)}
  
@@ -81,7 +81,7 @@ class TuplesImpl extends Tuples {
   override def get(arg: vpr.Exp, index: Int, arity: Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
      if (_generatedDomains.size== 0) {addNTuplesDomain(0);}
    
-    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar("T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map(vpr.TypeVar("T")->flag(index)))(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = Map(vpr.TypeVar("T")->flag(index)))(pos, info, errT)
+    vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar("T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = Map(vpr.TypeVar("T")->flag(index)))(pos, info, errT)
   
   }
 
@@ -129,7 +129,7 @@ vpr.NamedDomainAxiom(
           Seq(vpr.LocalVarDecl("s", domainType)(),vpr.LocalVarDecl("m", vpr.Int)(), vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))()),
           Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo,domainType, domainName2,vpr.NoTrafos ),m), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )))()),
          vpr.EqCmp(
-               vpr.DomainFuncApp(s"struct_gettup", Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )),typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), domainName2,vpr.NoTrafos ),
+               vpr.DomainFuncApp(s"struct_gettup", Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,m,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )),typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.TypeVar(s"T"), domainName2,vpr.NoTrafos ),
                 vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))().localVar)()
         )()
       )(domainName = domainName)
@@ -139,11 +139,11 @@ vpr.NamedDomainAxiom(
         name = s"get_set_1_ax",
         exp = vpr.Forall(
           Seq(vpr.LocalVarDecl("s", domainType)(),vpr.LocalVarDecl("m", vpr.Int)(),vpr.LocalVarDecl("n", vpr.Int)(), vpr.LocalVarDecl("t", vpr.TypeVar(s"T"))()),
-          Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )))()),
+          Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )))()),
          vpr.Implies(vpr.NeCmp(m,n)(),vpr.EqCmp(
           
-          vpr.DomainFuncApp(s"struct_loc", Seq(s,m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos ) ,
-                vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )
+          vpr.DomainFuncApp(s"struct_loc", Seq(s,m), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos ) ,
+                vpr.DomainFuncApp(s"struct_loc", Seq(vpr.DomainFuncApp(s"struct_settup", Seq(s,n,t), typeVarMapka)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos ),m),Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )
                          )()
         )())()
       )(domainName = domainName)

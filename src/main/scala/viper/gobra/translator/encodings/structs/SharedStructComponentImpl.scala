@@ -18,8 +18,8 @@ import viper.gobra.translator.context.Context
   * Because of the injectivity axiom, the constructor has to be removed. Otherwise the axioms are inconsistent.
   * */
 class SharedStructComponentImpl extends SharedStructComponent {
-  
-
+  val domainName : String = s"ShStruct"
+val domainType = vpr.DomainType (domainName, Map.empty)(Seq.empty)
   override def finalize(addMemberFn: vpr.Member => Unit): Unit = { if (flag!=1) {genDomains.take(1) foreach addMemberFn} else {genDomains2.take(1) foreach addMemberFn}  }
  
   private var genDomains: List[vpr.Domain] = List.empty
@@ -29,12 +29,12 @@ class SharedStructComponentImpl extends SharedStructComponent {
   private def genDomain(ctx: Context): Unit = {
    
     val domainName2: String = s"ShStructOps"
-    val domainName : String = s"ShStruct"
+    
     val T = vpr.TypeVar("T")
     
     val typeVars = Seq(T)
     val typeVarMap = (typeVars zip typeVars).toMap
-    val domainType = vpr.DomainType (domainName, Map.empty)(Seq.empty)
+    
     val xdecl = vpr.LocalVarDecl("x",domainType)()
     val x = xdecl.localVar
     val ydecl = vpr.LocalVarDecl("y",domainType)()
@@ -60,11 +60,11 @@ class SharedStructComponentImpl extends SharedStructComponent {
        vpr.AnonymousDomainAxiom(
         vpr.Forall(
            Seq(xdecl,ldecl),
-           Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int,domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )))()), vpr.And(vpr.GeCmp(l,vpr.IntLit(0)())(),
+           Seq(vpr.Trigger(Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int,domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )))()), vpr.And(vpr.GeCmp(l,vpr.IntLit(0)())(),
             vpr.And(vpr.LtCmp(l,vpr.DomainFuncApp(s"struct_length", Seq(x), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName2,vpr.NoTrafos ))() ,
             vpr.EqCmp(
             
-         vpr.DomainFuncApp(s"struct_rev" , Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )),typeVarMap)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos)
+         vpr.DomainFuncApp(s"struct_rev" , Seq(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos )),typeVarMap)(vpr.NoPosition,vpr.NoInfo, domainType, domainName2,vpr.NoTrafos)
           
             
             ,x)()
@@ -79,8 +79,8 @@ class SharedStructComponentImpl extends SharedStructComponent {
     val forall =  vpr.Forall(Seq(ldecl),Nil,
              vpr.And(vpr.LtCmp(l,vpr.DomainFuncApp(s"struct_length", Seq(x), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName2,vpr.NoTrafos ))() ,vpr.And(vpr.GeCmp(l,vpr.IntLit(0)())()
                 ,vpr.EqCmp(
-                vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos ),
-                vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(y,l), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos ))())())())()
+                vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(x,l), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos ),
+                vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(y,l), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, T, domainName2,vpr.NoTrafos ))())())())()
     val equalityAxiom2 = {
       vpr.AnonymousDomainAxiom(
         vpr.Forall(
@@ -92,7 +92,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
     }
     val domain2 = vpr.Domain(
       name = domainName2,
-      typVars = Seq(vpr.TypeVar("T")),
+      typVars = Seq(vpr.TypeVar("T")), 
       functions =  Seq(struct_get,struct_length, struct_rev),
       axioms = Seq(equalityAxiom2,injective)
     )()
@@ -115,13 +115,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
     val domainType = vpr.DomainType ("ShStruct", Map.empty)(Seq.empty)
     
     if (!(genArities contains arity)) genDomain(ctx)
-    val typeVarMap = (domains(arity+1).typVars zip (t map (_._1))).toMap
-    
-
-    vpr.DomainType(
-      domain = domains(arity),
-      typVarsMap =typeVarMap
-    )
+    domainType
   }
  
 
@@ -129,12 +123,18 @@ class SharedStructComponentImpl extends SharedStructComponent {
   override def get(base: vpr.Exp, idx: Int, t: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = {
     val arity = 0
     val domainName: String = s"ShStruct"
-    if (!(genArities contains arity)) genDomain(ctx)
-    val typeVarMap = (domains(arity+1).typVars zip (t map (_._1))).toMap
+    if (!(genArities contains arity)) genDomain(ctx) 
+    val typeVarMap = Map(vpr.TypeVar("T")->(t map (_._1))(idx))
     val (pos, info, errT) = src.vprMeta
+
+  //vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(base,vpr.IntLit(idx)()), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo, (t map (_._1))(idx), s"ShStructOps",vpr.NoTrafos )
+
+
+
+
     vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_get", Nil, vpr.TypeVar("T"))(domainName = s"ShStructOps"), 
     Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(base,vpr.IntLit(idx)()), 
-    typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(pos, info, errT)
+    Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, domainName,vpr.NoTrafos )), typeVarMap)(pos, info, errT)
   }
 
 
