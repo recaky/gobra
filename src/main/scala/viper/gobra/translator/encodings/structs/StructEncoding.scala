@@ -408,6 +408,19 @@ class StructEncoding extends TypeEncoding {
    
       fun
     }
+    def helper (fs:Vector[in.Field])(ctx:Context): vpr.Exp=
+     val resType = in.StructT(fs, Shared)
+      val vResType = typ(ctx)(resType)
+    {
+      if (fs.length==1) {}
+      else {
+      vpr.And(fs.dropRight(1),vpr.EqCmp(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(vpr.Result(vResType)(),vpr.LocalVarDecl("location", vpr.Int)().localVar), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStruct",vpr.NoTrafos )), Map.empty)(vpr.NoPosition,vpr.NoInfo,vpr.Ref, s"ShStructOps",vpr.NoTrafos ),
+         )())()}
+
+
+
+
+    }
   }
 
    
