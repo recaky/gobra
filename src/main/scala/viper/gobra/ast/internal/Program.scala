@@ -144,8 +144,8 @@ sealed trait MethodMember extends MethodLikeMember {
   def receiver: Parameter.In
   def args: Vector[Parameter.In]
   def results: Vector[Parameter.Out]
-  def pres: Vector[Assertion]
-  def posts: Vector[Assertion]
+  def pres: Vector[Vector[Assertion]]
+  def posts: Vector[Vector[Assertion]]
   def terminationMeasures: Vector[TerminationMeasure]
 }
 
@@ -156,8 +156,8 @@ sealed trait FunctionLikeMember extends Member {
 sealed trait FunctionLikeMemberOrLit extends Node {
   def args: Vector[Parameter.In]
   def results: Vector[Parameter.Out]
-  def pres: Vector[Assertion]
-  def posts: Vector[Assertion]
+  def pres: Vector[Vector[Assertion]]
+  def posts: Vector[Vector[Assertion]]
   def terminationMeasures: Vector[TerminationMeasure]
 }
 
@@ -182,8 +182,8 @@ case class Method(
                  override val name: MethodProxy,
                  override val args: Vector[Parameter.In],
                  override val results: Vector[Parameter.Out],
-                 override val pres: Vector[Assertion],
-                 override val posts: Vector[Assertion],
+                 override val pres: Vector[Vector[Assertion]],
+                 override val posts: Vector[Vector[Assertion]],
                  override val terminationMeasures: Vector[TerminationMeasure],
                  body: Option[MethodBody]
                  )(val info: Source.Parser.Info) extends Member with MethodMember
@@ -193,8 +193,8 @@ case class PureMethod(
                        override val name: MethodProxy,
                        override val args: Vector[Parameter.In],
                        override val results: Vector[Parameter.Out],
-                       override val pres: Vector[Assertion],
-                       override val posts: Vector[Assertion],
+                       override val pres: Vector[Vector[Assertion]],
+                       override val posts: Vector[Vector[Assertion]],
                        override val terminationMeasures: Vector[TerminationMeasure],
                        body: Option[Expr]
                      )(val info: Source.Parser.Info) extends Member with MethodMember {
@@ -238,8 +238,8 @@ case class Function(
                      override val name: FunctionProxy,
                      override val args: Vector[Parameter.In],
                      override val results: Vector[Parameter.Out],
-                     override val pres: Vector[Assertion],
-                     override val posts: Vector[Assertion],
+                     override val pres: Vector[Vector[Assertion]],
+                     override val posts: Vector[Vector[Assertion]],
                      override val terminationMeasures: Vector[TerminationMeasure],
                      body: Option[MethodBody]
                    )(val info: Source.Parser.Info) extends Member with FunctionMember
@@ -248,8 +248,8 @@ case class PureFunction(
                          override val name: FunctionProxy,
                          override val args: Vector[Parameter.In],
                          override val results: Vector[Parameter.Out],
-                         override val pres: Vector[Assertion],
-                         override val posts: Vector[Assertion],
+                         override val pres: Vector[Vector[Assertion]],
+                         override val posts: Vector[Vector[Assertion]],
                          override val terminationMeasures: Vector[TerminationMeasure],
                          body: Option[Expr]
                        )(val info: Source.Parser.Info) extends Member with FunctionMember {
@@ -1146,8 +1146,8 @@ case class FunctionLit(
                      override val args: Vector[Parameter.In],
                      override val captured: Vector[(Expr, Parameter.In)],
                      override val results: Vector[Parameter.Out],
-                     override val pres: Vector[Assertion],
-                     override val posts: Vector[Assertion],
+                     override val pres: Vector[Vector[Assertion]],
+                     override val posts: Vector[Vector[Assertion]],
                      override val terminationMeasures: Vector[TerminationMeasure],
                      body: Option[MethodBody]
                    )(val info: Source.Parser.Info) extends FunctionLitLike {
@@ -1159,8 +1159,8 @@ case class PureFunctionLit(
                          override val args: Vector[Parameter.In],
                          override val captured: Vector[(Expr, Parameter.In)],
                          override val results: Vector[Parameter.Out],
-                         override val pres: Vector[Assertion],
-                         override val posts: Vector[Assertion],
+                         override val pres: Vector[Vector[Assertion]],
+                         override val posts: Vector[Vector[Assertion]],
                          override val terminationMeasures: Vector[TerminationMeasure],
                          body: Option[Expr]
                        )(val info: Source.Parser.Info) extends FunctionLitLike {
