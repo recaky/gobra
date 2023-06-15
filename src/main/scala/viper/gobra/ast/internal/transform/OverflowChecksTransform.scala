@@ -36,7 +36,7 @@ object OverflowChecksTransform extends InternalTransform {
     // overflows
     case f@PureFunction(name, args, results, pres, posts, terminationMeasure, body) => body match {
       case Some(expr) =>
-        val newPost = posts ++ getPureBlockPosts(expr, results)
+        val newPost = Vector( if (posts.isEmpty){Vector.empty} else {posts.head} ++ getPureBlockPosts(expr, results))
         PureFunction(name, args, results, pres, newPost, terminationMeasure, body)(f.info)
       case None => f
     }
@@ -44,7 +44,7 @@ object OverflowChecksTransform extends InternalTransform {
     // Same as pure functions
     case m@PureMethod(receiver, name, args, results, pres, posts, terminationMeasure, body) => body match {
       case Some(expr) =>
-        val newPost = posts ++ getPureBlockPosts(expr, results)
+        val newPost = Vector( if (posts.isEmpty){Vector.empty} else {posts.head} ++ getPureBlockPosts(expr, results))
         PureMethod(receiver, name, args, results, pres, newPost, terminationMeasure, body)(m.info)
       case None => m
     }

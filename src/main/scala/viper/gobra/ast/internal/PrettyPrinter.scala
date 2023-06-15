@@ -150,25 +150,25 @@ class DefaultPrettyPrinter extends PrettyPrinter with kiama.output.PrettyPrinter
   def showFunction(f: Function): Doc = f match {
     case Function(name, args, results, pres, posts, measures, body) =>
       "func" <+> name.name <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures)) <> opt(body)(b => block(showStmt(b)))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures)) <> opt(body)(b => block(showStmt(b)))
   }
 
   def showPureFunction(f: PureFunction): Doc = f match {
     case PureFunction(name, args, results, pres, posts, measures, body) =>
       "pure func" <+> name.name <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures)) <> opt(body)(b => block("return" <+> showExpr(b)))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures)) <> opt(body)(b => block("return" <+> showExpr(b)))
   }
 
   def showMethod(m: Method): Doc = m match {
     case Method(receiver, name, args, results, pres, posts, measures, body) =>
       "func" <+> parens(showVarDecl(receiver)) <+> name.name <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures)) <> opt(body)(b => block(showStmt(b)))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures)) <> opt(body)(b => block(showStmt(b)))
   }
 
   def showPureMethod(m: PureMethod): Doc = m match {
     case PureMethod(receiver, name, args, results, pres, posts, measures, body) =>
       "pure func" <+> parens(showVarDecl(receiver)) <+> name.name <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures)) <> opt(body)(b => block("return" <+> showExpr(b)))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures)) <> opt(body)(b => block("return" <+> showExpr(b)))
   }
 
   def showMethodSubtypeProof(m: MethodSubtypeProof): Doc = m match {
@@ -599,12 +599,12 @@ class DefaultPrettyPrinter extends PrettyPrinter with kiama.output.PrettyPrinter
 
     case FunctionLit(name, args, captured, results, pres, posts, measures, body) =>
       "func" <+> showProxy(name) <> showCaptured(captured) <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures)) <>
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures)) <>
         opt(body)(b => block(showStmt(b)))
 
     case PureFunctionLit(name, args, captured, results, pres, posts, measures, body) =>
       "pure func" <+> showProxy(name)  <> showCaptured(captured) <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures)) <> opt(body)(b => block("return" <+> showExpr(b)))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures)) <> opt(body)(b => block("return" <+> showExpr(b)))
 
     case ArrayLit(len, typ, elems) => {
       val lenP = brackets(len.toString)
@@ -672,25 +672,25 @@ class ShortPrettyPrinter extends DefaultPrettyPrinter {
   override def showFunction(f: Function): Doc = f match {
     case Function(name, args, results, pres, posts, measures, _) =>
       "func" <+> name.name <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures))
   }
 
   override def showPureFunction(f: PureFunction): Doc = f match {
     case PureFunction(name, args, results, pres, posts, measures, _) =>
       "pure func" <+> name.name <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures))
   }
 
   override def showMethod(m: Method): Doc = m match {
     case Method(receiver, name, args, results, pres, posts, measures, _) =>
       "func" <+> parens(showVarDecl(receiver)) <+> name.name <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures))
   }
 
   override def showPureMethod(m: PureMethod): Doc = m match {
     case PureMethod(receiver, name, args, results, pres, posts, measures, _) =>
       "pure func" <+> parens(showVarDecl(receiver)) <+> name.name <> parens(showFormalArgList(args)) <+> parens(showVarDeclList(results)) <>
-        spec(showPreconditions(pres) <> showPostconditions(posts) <> showTerminationMeasures(measures))
+        spec(showPreconditions(if (pres.isEmpty){Vector.empty} else {pres.head}) <> showPostconditions(if (posts.isEmpty){Vector.empty} else {posts.head}) <> showTerminationMeasures(measures))
   }
 
   override def showFPredicate(predicate: FPredicate): Doc = predicate match {

@@ -713,9 +713,9 @@ class InterfaceEncoding extends LeafTypeEncoding {
     }
 
     for {
-      vPres <- ml.sequence(p.pres map ctx.precondition)
+      vPres <- ml.sequence((if (p.pres.isEmpty) {Vector.empty.map(ctx.precondition)} else {p.pres.head map ctx.precondition}))
       measures <- ml.sequence(p.terminationMeasures.map(e => ml.pure(ctx.assertion(e))(ctx)))
-      posts <- ml.sequence(p.posts.map(ctx.postcondition(_).map(fixResultvar(_))))
+      posts <- ml.sequence((if (p.posts.isEmpty) {Vector.empty } else {p.posts.head.map(ctx.postcondition(_).map(fixResultvar(_)))}))
       body  <- ml.option(p.body.map(p => ml.pure(ctx.expression(p))(ctx)))
       func = vpr.Function(
         name = p.name.uniqueName,

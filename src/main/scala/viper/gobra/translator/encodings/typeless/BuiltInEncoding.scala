@@ -213,8 +213,8 @@ class BuiltInEncoding extends Encoding {
         val recvParam = in.Parameter.In("c", recv)(src)
         val kParam = in.Parameter.Out("k", in.IntT(Addressability.outParameter))(src)
         val isChannelInst = builtInMPredAccessible(BuiltInMemberTag.IsChannelMPredTag, recvParam, Vector())(src)(ctx)
-        val pres: Vector[in.Assertion] = Vector(
-          in.Access(isChannelInst, in.WildcardPerm(src))(src),
+        val pres: Vector[Vector[in.Assertion]] = Vector(Vector(
+          in.Access(isChannelInst, in.WildcardPerm(src))(src)),
         )
         in.PureMethod(recvParam, x.name, Vector(), Vector(kParam), pres, Vector(), Vector(), None)(src)
 
@@ -239,8 +239,8 @@ class BuiltInEncoding extends Encoding {
           case _: RecvPermMethodTag => BuiltInMemberTag.RecvChannelMPredTag
         }
         val chanPredicate = builtInMPredAccessible(chanPredicateTag, recvParam, Vector())(src)(ctx)
-        val pres: Vector[in.Assertion] = Vector(
-          in.Access(chanPredicate, in.WildcardPerm(src))(src)
+        val pres: Vector[Vector[in.Assertion]] = Vector(Vector(
+          in.Access(chanPredicate, in.WildcardPerm(src))(src))
         )
         in.PureMethod(recvParam, x.name, Vector(), Vector(resParam), pres, Vector(), Vector(), None)(src)
 
@@ -272,10 +272,10 @@ class BuiltInEncoding extends Encoding {
           in.GreaterCmp(bufferSizeCall, in.IntLit(0)(src))(src),
           in.ExprAssertion(in.EqCmp(bParam, predTrueConstr)(src))(src)
         )(src)
-        val pres: Vector[in.Assertion] = Vector(
+        val pres: Vector[Vector[in.Assertion]] = Vector(Vector(
           in.Access(isChannelInst, in.FullPerm(src))(src),
           bufferedImpl
-        )
+        ))
         val sendChannelInst = builtInMPredAccessible(BuiltInMemberTag.SendChannelMPredTag, recvParam, Vector())(src)(ctx)
         val recvChannelInst = builtInMPredAccessible(BuiltInMemberTag.RecvChannelMPredTag, recvParam, Vector())(src)(ctx)
         val sendAndRecvChannel = in.SepAnd(
@@ -292,11 +292,11 @@ class BuiltInEncoding extends Encoding {
         val recvGotPermCall = builtInPureMethodCall(BuiltInMemberTag.RecvGotPermMethodTag, recvParam, Vector(), predTType)(src)(ctx)
         val recvGotPermEq = in.EqCmp(recvGotPermCall, aParam)(src)
         val recvChannelInvEq = in.And(recvGivenPermEq, recvGotPermEq)(src)
-        val posts: Vector[in.Assertion] = Vector(
+        val posts: Vector[Vector[in.Assertion]] = Vector(Vector(
           sendAndRecvChannel,
           in.ExprAssertion(sendChannelInvEq)(src),
           in.ExprAssertion(recvChannelInvEq)(src),
-        )
+        ))
         in.Method(recvParam, x.name, Vector(aParam, bParam), Vector(), pres, posts, Vector(in.WildcardMeasure(None)(src)), None)(src)
 
       case (CreateDebtChannelMethodTag, recv: in.ChannelT) =>
@@ -314,19 +314,19 @@ class BuiltInEncoding extends Encoding {
         // val permissionAmountParam = in.Parameter.In("p", in.PermissionT(Addressability.inParameter))(src)
         val predicateParam = in.Parameter.In("P", in.PredT(Vector(), Addressability.inParameter))(src)
         val sendChannelInst = builtInMPredAccessible(BuiltInMemberTag.SendChannelMPredTag, recvParam, Vector())(src)(ctx)
-        val pres: Vector[in.Assertion] = Vector(
+        val pres: Vector[Vector[in.Assertion]] = Vector(Vector(
           in.ExprAssertion(in.AtLeastCmp(dividendParam, in.IntLit(0)(src))(src))(src),
           in.ExprAssertion(in.GreaterCmp(divisorParam, in.IntLit(0)(src))(src))(src),
           in.Access(sendChannelInst, in.FractionalPerm(dividendParam, divisorParam)(src))(src)
           // in.Access(sendChannelInst, permissionAmountParam)(src)
-        )
+        ))
         val closureDebtArgs = Vector(predicateParam, dividendParam, divisorParam /* permissionAmountParam */)
         val closureDebtInst = builtInMPredAccessible(BuiltInMemberTag.ClosureDebtMPredTag, recvParam, closureDebtArgs)(src)(ctx)
         val tokenInst = builtInMPredAccessible(BuiltInMemberTag.TokenMPredTag, recvParam, Vector(predicateParam))(src)(ctx)
-        val posts: Vector[in.Assertion] = Vector(
+        val posts: Vector[Vector[in.Assertion]] = Vector(Vector(
           in.Access(closureDebtInst, in.FullPerm(src))(src),
           in.Access(tokenInst, in.FullPerm(src))(src),
-        )
+        ))
         in.Method(recvParam, x.name, Vector(dividendParam, divisorParam /* permissionAmountParam */, predicateParam), Vector(), pres, posts, Vector(), None)(src)
 
       case (RedeemChannelMethodTag, recv: in.ChannelT) =>
@@ -342,14 +342,14 @@ class BuiltInEncoding extends Encoding {
         val predicateParam = in.Parameter.In("P", in.PredT(Vector(), Addressability.inParameter))(src)
         val tokenInst = builtInMPredAccessible(BuiltInMemberTag.TokenMPredTag, recvParam, Vector(predicateParam))(src)(ctx)
         val closedInst = builtInMPredAccessible(BuiltInMemberTag.ClosedMPredTag, recvParam, Vector())(src)(ctx)
-        val pres: Vector[in.Assertion] = Vector(
+        val pres: Vector[Vector[in.Assertion]] = Vector(Vector(
           in.Access(tokenInst, in.FullPerm(src))(src),
           in.Access(closedInst, in.WildcardPerm(src))(src)
-        )
-        val posts: Vector[in.Assertion] = Vector(
+        ))
+        val posts: Vector[Vector[in.Assertion]] = Vector(Vector(
           in.Access(closedInst, in.FullPerm(src))(src),
           in.Access(in.Accessible.PredExpr(in.PredExprInstance(predicateParam, Vector())(src)), in.FullPerm(src))(src)
-        )
+        ))
         in.Method(recvParam, x.name, Vector(predicateParam), Vector(), pres, posts, Vector(), None)(src)
 
       case (tag, recv) => violation(s"no method generation defined for tag $tag and receiver $recv")
@@ -411,18 +411,18 @@ class BuiltInEncoding extends Encoding {
           // in.Sub(in.IntLit(1)(src), permissionAmountParam)(src)
         )
         val closureDebtInst = builtInMPredAccessible(BuiltInMemberTag.ClosureDebtMPredTag, channelParam, closureDebtArgs)(src)(ctx)
-        val pres: Vector[in.Assertion] = Vector(
+        val pres: Vector[Vector[in.Assertion]] = Vector(Vector(
           in.ExprAssertion(in.AtLeastCmp(dividendParam, in.IntLit(0)(src))(src))(src),
           in.ExprAssertion(in.GreaterCmp(divisorParam, in.IntLit(0)(src))(src))(src),
           in.Access(sendChannelInst, in.FractionalPerm(dividendParam, divisorParam)(src))(src),
           // in.Access(sendChannelInst, permissionAmountParam)(src),
           in.Access(closureDebtInst, in.FullPerm(src))(src),
           in.Access(in.Accessible.PredExpr(in.PredExprInstance(predicateParam, Vector())(src)), in.FullPerm(src))(src)
-        )
+        ))
         val closedInst = builtInMPredAccessible(BuiltInMemberTag.ClosedMPredTag, channelParam, Vector())(src)(ctx)
-        val posts: Vector[in.Assertion] = Vector(
+        val posts: Vector[Vector[in.Assertion]] = Vector(Vector(
           in.Access(closedInst, in.FullPerm(src))(src)
-        )
+        ))
 
         in.Function(x.name, args, Vector(), pres, posts, Vector(), None)(src)
 
@@ -465,7 +465,7 @@ class BuiltInEncoding extends Encoding {
         val preSlice = accessSlice(sliceParam, in.FullPerm(src))
         val preVariadic = accessSlice(variadicParam, pParam)
         val pPre = in.ExprAssertion(in.LessCmp(in.NoPerm(src), pParam)(src))(src)
-        val pres: Vector[in.Assertion] = Vector(pPre, preSlice, preVariadic)
+        val pres: Vector[Vector[in.Assertion]] = Vector(Vector(pPre, preSlice, preVariadic))
 
         // postconditions
         val postLen = in.ExprAssertion(
@@ -500,7 +500,7 @@ class BuiltInEncoding extends Encoding {
             )(src)
           }
         )
-        val posts: Vector[in.Assertion] = Vector(postLen, postRes, postVariadic, postCmpSlice, postCmpVariadic)
+        val posts: Vector[Vector[in.Assertion]] = Vector(Vector(postLen, postRes, postVariadic, postCmpSlice, postCmpVariadic))
 
         in.Function(x.name, args, results, pres, posts, Vector(in.WildcardMeasure(None)(src)), None)(src)
 
@@ -558,7 +558,7 @@ class BuiltInEncoding extends Encoding {
           body = { i => in.Access(in.Accessible.Address(in.IndexedExp(srcParam, i, srcUnderlyingType)(src)), pParam)(src) }
         )
 
-        val pres = Vector(pPre, preDst, preSrc)
+        val pres = Vector(Vector(pPre, preDst, preSrc))
 
         // postconditions
         val postRes1 = in.Implication(
@@ -604,7 +604,7 @@ class BuiltInEncoding extends Encoding {
           }
         )
 
-        val posts = Vector(postRes1, postRes2, postDst, postSrc, postUpdate, postSame)
+        val posts = Vector(Vector(postRes1, postRes2, postDst, postSrc, postUpdate, postSame))
 
         in.Function(x.name, args, results, pres, posts, Vector(in.WildcardMeasure(None)(src)), None)(src)
 

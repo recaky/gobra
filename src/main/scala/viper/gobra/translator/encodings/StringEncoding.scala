@@ -295,8 +295,8 @@ class StringEncoding extends LeafTypeEncoding {
         name = in.FunctionProxy(byteSliceToStrFuncName)(info),
         args = Vector(param),
         results = Vector(res),
-        pres = Vector(pre),
-        posts = Vector(),
+        pres = Vector(Vector(pre)),
+        posts = Vector(Vector()),
         terminationMeasures = Vector(in.WildcardMeasure(None)(info)),
         body = None
       )(info)

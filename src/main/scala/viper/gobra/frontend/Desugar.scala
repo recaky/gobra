@@ -547,8 +547,8 @@ object Desugar {
     private case class FunctionInfo(args: Vector[in.Parameter.In],
                                     captured: Vector[(in.Expr, in.Parameter.In)],
                                     results: Vector[in.Parameter.Out],
-                                    pres: Vector[in.Assertion],
-                                    posts: Vector[in.Assertion],
+                                    pres: Vector[Vector[in.Assertion]],
+                                    posts: Vector[Vector[in.Assertion]],
                                     terminationMeasures: Vector[in.TerminationMeasure],
                                     body: Option[in.MethodBody])
 
@@ -611,8 +611,8 @@ object Desugar {
       }
 
       // translate pre- and postconditions and termination measures
-      val pres = (decl.spec.pres ++ decl.spec.preserves) map preconditionD(specCtx, info)
-      val posts = (decl.spec.preserves ++ decl.spec.posts) map postconditionD(specCtx, info)
+      val pres = Vector((decl.spec.pres ++ decl.spec.preserves) map preconditionD(specCtx, info))
+      val posts = Vector((decl.spec.preserves ++ decl.spec.posts) map postconditionD(specCtx, info))
       val terminationMeasures = sequence(decl.spec.terminationMeasures map terminationMeasureD(specCtx, info)).res
 
       // p1' := p1; ... ; pn' := pn
@@ -676,8 +676,8 @@ object Desugar {
     private case class PureFunctionInfo(args: Vector[in.Parameter.In],
                                         captured: Vector[(in.Expr, in.Parameter.In)],
                                         results: Vector[in.Parameter.Out],
-                                        pres: Vector[in.Assertion],
-                                        posts: Vector[in.Assertion],
+                                        pres: Vector[Vector[in.Assertion]],
+                                        posts: Vector[Vector[in.Assertion]],
                                         terminationMeasures: Vector[in.TerminationMeasure],
                                         body: Option[in.Expr])
 
@@ -721,8 +721,8 @@ object Desugar {
       }
 
       // translate pre- and postconditions and termination measures
-      val pres = decl.spec.pres map preconditionD(ctx, info)
-      val posts = decl.spec.posts map postconditionD(ctx, info)
+      val pres = Vector(decl.spec.pres map preconditionD(ctx, info))
+      val posts = Vector(decl.spec.posts map postconditionD(ctx, info))
       val terminationMeasure = sequence(decl.spec.terminationMeasures map terminationMeasureD(ctx, info)).res
 
       val capturedWithAliases = (captured.map { v => in.Ref(localVarD(outerCtx, info)(v))(meta(v, info)) } zip capturedPar)
@@ -798,8 +798,8 @@ object Desugar {
       }
 
       // translate pre- and postconditions and termination measures
-      val pres = (decl.spec.pres ++ decl.spec.preserves) map preconditionD(specCtx, info)
-      val posts = (decl.spec.preserves ++ decl.spec.posts) map postconditionD(specCtx, info)
+      val pres = Vector((decl.spec.pres ++ decl.spec.preserves) map preconditionD(specCtx, info))
+      val posts = Vector((decl.spec.preserves ++ decl.spec.posts) map postconditionD(specCtx, info))
       val terminationMeasure = sequence(decl.spec.terminationMeasures map terminationMeasureD(specCtx, info)).res
 
       // s' := s
@@ -889,8 +889,8 @@ object Desugar {
       }
 
       // translate pre- and postconditions
-      val pres = (decl.spec.pres ++ decl.spec.preserves) map preconditionD(ctx, info)
-      val posts = (decl.spec.preserves ++ decl.spec.posts) map postconditionD(ctx, info)
+      val pres = Vector((decl.spec.pres ++ decl.spec.preserves) map preconditionD(ctx, info))
+      val posts = Vector((decl.spec.preserves ++ decl.spec.posts) map postconditionD(ctx, info))
       val terminationMeasure = sequence(decl.spec.terminationMeasures map terminationMeasureD(ctx, info)).res
 
       val bodyOpt = decl.body.map {
@@ -3233,8 +3233,8 @@ object Desugar {
           val returnsWithSubs = m.result.outs.zipWithIndex map { case (p,i) => outParameterD(p,i,xInfo) }
           val (returns, _) = returnsWithSubs.unzip
           val specCtx = new FunctionContext(_ => _ => in.Seqn(Vector.empty)(src)) // dummy assign
-          val pres = (m.spec.pres ++ m.spec.preserves) map preconditionD(specCtx, info)
-          val posts = (m.spec.preserves ++ m.spec.posts) map postconditionD(specCtx, info)
+          val pres = Vector((m.spec.pres ++ m.spec.preserves) map preconditionD(specCtx, info))
+          val posts = Vector((m.spec.preserves ++ m.spec.posts) map postconditionD(specCtx, info))
           val terminationMeasures = sequence(m.spec.terminationMeasures map terminationMeasureD(specCtx, info)).res
 
           val mem = if (m.spec.isPure) {
@@ -3483,10 +3483,10 @@ object Desugar {
         name = funcProxy,
         args = Vector.empty,
         results = Vector.empty,
-        pres = specCollector.postsOfPackage(pkg),
-        posts = specCollector.presImportsOfPackage(pkg).map{ a =>
+        pres = Vector(specCollector.postsOfPackage(pkg)),
+        posts = Vector(specCollector.presImportsOfPackage(pkg).map{ a =>
           a.withInfo(a.info.asInstanceOf[Source.Parser.Single].createAnnotatedInfo(ImportPreNotEstablished))
-        },
+        }),
         terminationMeasures = Vector.empty,
         body = Some(in.MethodBody(Vector.empty, in.MethodBodySeqn(Vector.empty)(src), Vector.empty)(src)),
       )(src)
@@ -3519,8 +3519,8 @@ object Desugar {
           name = funcProxy,
           args = Vector.empty,
           results = Vector.empty,
-          pres = mainPkgPosts,
-          posts = mainFuncPreD,
+          pres = Vector(mainPkgPosts),
+          posts = Vector( mainFuncPreD),
           terminationMeasures = Vector.empty,
           body = Some(in.MethodBody(Vector.empty, in.MethodBodySeqn(Vector.empty)(src), Vector.empty)(src)),
         )(src)
@@ -3554,9 +3554,9 @@ object Desugar {
         args = Vector(),
         results = Vector(),
         // inhales all preconditions in the imports of the current file
-        pres = progPres,
+        pres = Vector(progPres),
         // exhales all package postconditions in the current file
-        posts = progPosts,
+        posts = Vector(progPosts),
         // in our verification approach, the initialization code must be proven to terminate
         terminationMeasures = Vector(in.TupleTerminationMeasure(Vector(), None)(src)),
         body = Some(

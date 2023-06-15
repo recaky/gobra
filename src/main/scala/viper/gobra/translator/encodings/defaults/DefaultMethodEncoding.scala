@@ -38,8 +38,8 @@ class DefaultMethodEncoding extends Encoding {
     val vResultInit = cl.seqns(x.results map ctx.initialization)
 
     for {
-      pres <- sequence((vRecvPres ++ vArgPres) ++ x.pres.map(ctx.precondition))
-      posts <- sequence(vResultPosts ++ x.posts.map(ctx.postcondition))
+      pres <- sequence((vRecvPres ++ vArgPres) ++ (if (x.pres.isEmpty) {Vector.empty.map(ctx.precondition)} else { x.pres.head.map(ctx.precondition)}))
+      posts <- sequence(vResultPosts ++ (if (x.posts.isEmpty) {Vector.empty.map(ctx.postcondition)} else { x.posts.head.map(ctx.postcondition)}))
       measures <- sequence(x.terminationMeasures.map(e => pure(ctx.assertion(e))(ctx)))
 
       body <- option(x.body.map{ b => block{
@@ -75,8 +75,8 @@ class DefaultMethodEncoding extends Encoding {
     val vResultInit = cl.seqns(x.results map ctx.initialization)
 
     for {
-      pres <- sequence(vArgPres ++ x.pres.map(ctx.precondition))
-      posts <- sequence(vResultPosts ++ x.posts.map(ctx.postcondition))
+      pres <- sequence(vArgPres ++ (if (x.pres.isEmpty) {Vector.empty.map(ctx.precondition)} else { x.pres.head.map(ctx.precondition)}))
+      posts <- sequence(vResultPosts ++ (if (x.posts.isEmpty) {Vector.empty.map(ctx.postcondition)} else { x.pres.head.map(ctx.postcondition)}))
       measures <- sequence(x.terminationMeasures.map(e => pure(ctx.assertion(e))(ctx)))
 
       body <- option(x.body.map{ b => block{

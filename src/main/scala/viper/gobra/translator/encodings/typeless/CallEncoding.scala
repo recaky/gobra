@@ -76,12 +76,12 @@ class CallEncoding extends Encoding {
     case x@in.GoFunctionCall(func, args) =>
       val (pos, info, errT) = x.vprMeta
       val funcM = ctx.lookup(func)
-      translateGoCall(funcM.pres, funcM.args, args)(ctx)(pos, info, errT)
+      translateGoCall((if (funcM.pres.isEmpty) {Vector.empty} else {funcM.pres.head}), funcM.args, args)(ctx)(pos, info, errT)
 
     case x@in.GoMethodCall(recv, meth, args) =>
       val (pos, info, errT) = x.vprMeta
       val methM = ctx.lookup(meth)
-      translateGoCall(methM.pres, methM.receiver +: methM.args, recv +: args)(ctx)(pos, info, errT)
+      translateGoCall((if (methM.pres.isEmpty) { Vector.empty} else {methM.pres.head}), methM.receiver +: methM.args, recv +: args)(ctx)(pos, info, errT)
   }
 
   /**
