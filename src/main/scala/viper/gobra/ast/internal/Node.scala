@@ -19,7 +19,7 @@ import scala.reflect.ClassTag
 trait Node extends Rewritable with Product {
 
   def info: Source.Parser.Info
-
+  def slices: Integer = 0
   def undefinedInfo: Boolean = info == Source.Parser.Unsourced
 
   lazy val vprMeta: (vpr.Position, vpr.Info, vpr.ErrorTrafo) = info.vprMeta(this)

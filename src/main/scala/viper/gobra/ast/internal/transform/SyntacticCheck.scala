@@ -33,14 +33,15 @@ object SyntacticCheck extends InternalTransform {
                 s => s.visit {
                   case elem: in.Stmt =>
                     if (checkStmt(elem)) {
-                      println("The function " + m.name + " contains subslicing expressions")
+                      println("The function " + m.name + " contains subslicing expressions");
+                      
                       //m.withInfo(createAnnotatedInfo(m.info))
                       return
                     } else {}
                   case _ =>
               })
               println("The function " + m.name + " does not contain subslicing expressions")
-            case _ => println("The function " + m.name + " does not contain subslicing expressions")
+            case _ => m.slices= 1
           }
         case _ =>
       }
@@ -56,7 +57,9 @@ object SyntacticCheck extends InternalTransform {
         }
         slice
       }
-
+      def encoding(m:in.Function, a:Integer):Unit = {
+        m.slices=a
+      }
       /*
       Checks the statements for subslicing expressions
        */
