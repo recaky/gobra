@@ -16,9 +16,9 @@ import viper.gobra.util.Violation.violation
   * Transformation responsible for generating call-graph edges from interface methods to their implementations' methods.
   * This is necessary to soundly verify termination in the presence of dynamic method binding.
   */
-object SyntacticCheck extends InternalTransform {
-  override def name(): String = "syntactic_check_for_slices"
-
+object SyntacticCheck2 extends InternalTransform {
+  override def name(): String = "syntactic_check_for_interface"
+  var methodsToAdd: Set[in.Member] = Set.empty
   /**
     * Program-to-program transformation
     */
@@ -34,7 +34,7 @@ object SyntacticCheck extends InternalTransform {
                   case elem: in.Stmt =>
                     if (checkStmt(elem)) {
                       println("The function " + m.name + " contains subslicing expressions");
-                      m.Annotation().slices= 0
+                      m.Annotation().setslices(0)
                       println(m.Annotation().slices)
                       //m.withInfo(createAnnotatedInfo(m.info))
                       return
@@ -43,7 +43,7 @@ object SyntacticCheck extends InternalTransform {
               })
               println("The function " + m.name + " does not contain subslicing expressions")
               m.Annotation().setslices(1)
-              
+              println(m.Annotation().slices)
             case _ => m.Annotation().setslices(1) 
           }
         case _ =>
@@ -64,12 +64,39 @@ object SyntacticCheck extends InternalTransform {
       /*
       Checks the statements for subslicing expressions
        */
-      def checkStmt(s: in.Stmt): Boolean = s match {
-        case s: in.If => checkExpr(s.cond) || checkStmt(s.thn) || checkStmt(s.els)
-        case s: in.While =>  checkExpr(s.cond) || checkStmt(s.body)
-        case s: in.SingleAss => checkExpr(s.right)
-        case s: in.FunctionCall => s.args.exists(e => checkExpr(e))
-        case s: in.MethodCall => s.args.exists(e => checkExpr(e))
+      def checkSameEncoding(s: in.Stmt, m: in.Member, p: in.Program): Boolean = s match {
+        case s: in.If => checkSameEncoding(s.cond) || checkSameEncoding(s.thn) || checkSameEncoding(s.els)
+        case s: in.While =>  checkSameEncoding(s.cond) || checkSameEncoding(s.body)
+        case s: in.SingleAss => checkSameEncoding(s.right)
+        case s: in.FunctionCall => {
+        val member = p.lookup(s.func)
+        if (member.slices==m.slices) {} else {
+          val newMember = in.Function( member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, None)(member.info)
+          methodsToAdd += newMember
+
+
+}
+
+
+
+
+
+
+        }
+        case s: in.MethodCall => {
+        val member = p.lookup(s.meth)
+        if (member.slices==m.slices) {} else {
+        val newMember = in.Method( member.receiver, member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, None)(member.info)
+        methodsToAdd += newMember
+                
+}
+
+
+
+
+
+
+        }
         case _ => false
       }
 
