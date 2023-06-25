@@ -235,7 +235,7 @@ class StructEncoding extends TypeEncoding {
        
         val x = in.LocalVar(name, typek)(e.info)
         val  vX = ctx.variable(x)
-        //val fieldDefaults = Vector(x) ++ fs.map(f => in.DfltVal(f.typ)(e.info))
+      
         val fieldDefaults = fs.map(f => in.DfltVal(f.typ)(e.info))
         for {
         _<-local(vX)
