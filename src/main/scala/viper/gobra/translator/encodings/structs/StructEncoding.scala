@@ -258,7 +258,8 @@ class StructEncoding extends TypeEncoding {
        
         val x = in.LocalVar(name, typek)(lit.info)
         val  vX = ctx.variable(x)
-       //val argsy = Vector(x) ++ args 
+      
+      
         val argsy = args 
         
        
