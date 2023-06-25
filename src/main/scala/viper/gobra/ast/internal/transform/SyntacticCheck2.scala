@@ -4,7 +4,7 @@
 //
 // Copyright (c) 2011-2021 ETH Zurich.
 
-package viper.gobra.ast.internal.transform
+/*package viper.gobra.ast.internal.transform
 
 import viper.gobra.ast.{internal => in}
 import viper.gobra.reporting.Source
@@ -65,8 +65,8 @@ object SyntacticCheck2 extends InternalTransform {
       Checks the statements for subslicing expressions
        */
       def checkSameEncoding(s: in.Stmt, m: in.Member, p: in.Program): Boolean = s match {
-        case s: in.If => checkSameEncoding(s.cond) || checkSameEncoding(s.thn) || checkSameEncoding(s.els)
-        case s: in.While =>  checkSameEncoding(s.cond) || checkSameEncoding(s.body)
+        case s: in.If => checkSameEncoding(s.cond) && checkSameEncoding(s.thn) && checkSameEncoding(s.els)
+        case s: in.While =>  checkSameEncoding(s.cond) && checkSameEncoding(s.body)
         case s: in.SingleAss => checkSameEncoding(s.right)
         case s: in.FunctionCall => {
         val member = p.lookup(s.func)
@@ -115,3 +115,4 @@ object SyntacticCheck2 extends InternalTransform {
     )(p.info)
   }
 }
+*/

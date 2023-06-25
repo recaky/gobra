@@ -19,10 +19,10 @@ import scala.reflect.ClassTag
 trait Node extends Rewritable with Product {
 
   def info: Source.Parser.Info
-  case class Annotation(){
+   object Annotation{
     var slices: Integer = 1
     def setslices(a:Integer):Unit={
-      slices= a
+      this.slices= a
 }}
   
   def undefinedInfo: Boolean = info == Source.Parser.Unsourced

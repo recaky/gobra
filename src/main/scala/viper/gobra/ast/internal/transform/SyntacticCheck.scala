@@ -34,17 +34,17 @@ object SyntacticCheck extends InternalTransform {
                   case elem: in.Stmt =>
                     if (checkStmt(elem)) {
                       println("The function " + m.name + " contains subslicing expressions");
-                      m.Annotation().slices= 0
-                      println(m.Annotation().slices)
+                      m.Annotation.setslices(0)
+                      println(m.Annotation.slices)
                       //m.withInfo(createAnnotatedInfo(m.info))
                       return
                     } else {}
                   case _ =>
               })
               println("The function " + m.name + " does not contain subslicing expressions")
-              m.Annotation().setslices(1)
+              m.Annotation.setslices(1)
               
-            case _ => m.Annotation().setslices(1) 
+            case _ => m.Annotation.setslices(1) 
           }
         case _ =>
       }
