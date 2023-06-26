@@ -80,6 +80,7 @@ class TuplesImpl extends Tuples {
 
   override def get(arg: vpr.Exp, index: Int, arity: Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
      if (_generatedDomains.size== 0) {addNTuplesDomain(0);}
+     
    
     vpr.DomainFuncApp(func = vpr.DomainFunc(s"struct_gettup", Nil, vpr.TypeVar("T"))(domainName = s"StructOps"), Seq(vpr.DomainFuncApp(s"struct_loc", Seq(arg,vpr.IntLit(index)()), typVarMap = Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, "Struct",vpr.NoTrafos )), typVarMap = Map(vpr.TypeVar("T")->flag(index)))(pos, info, errT)
   

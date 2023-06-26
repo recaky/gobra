@@ -10,8 +10,7 @@ import viper.gobra.translator.context.Context
 import viper.silver.{ast => vpr}
 
 trait InterfaceComponent {
-  var poly:vpr.Type=vpr.Int
-  var dyn:vpr.Type=vpr.Int
+ var flag:Vector[vpr.Type] = Vector.empty
 
   /** Returns type of an interface */
   def typ(polyType: vpr.Type, dynTypeType: vpr.Type)(ctx: Context): vpr.Type

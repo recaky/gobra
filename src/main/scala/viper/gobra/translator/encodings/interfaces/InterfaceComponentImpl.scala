@@ -12,20 +12,20 @@ import viper.silver.{ast => vpr}
 class InterfaceComponentImpl extends InterfaceComponent{
  
 
-  def typ(polyType: vpr.Type, dynTypeType: vpr.Type)(ctx: Context): vpr.Type ={poly= polyType; dyn=dynTypeType;ctx.tuple.typ(Vector(polyType, dynTypeType))}
+  def typ(polyType: vpr.Type, dynTypeType: vpr.Type)(ctx: Context): vpr.Type ={flag= Vector(polyType, dynTypeType);ctx.tuple.typ(Vector(polyType, dynTypeType))}
 
   def create(polyVal: vpr.Exp, dynType: vpr.Exp)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo)(ctx: Context): vpr.Exp =
     ctx.tuple.create(Vector(polyVal, dynType))(pos, info, errT)
 
   def dynTypeOf(itf: vpr.Exp)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo)(ctx: Context): vpr.Exp =
   {val nothing = itf.typ
-  ctx.tuple.flag=Vector(poly);
-  println(ctx.tuple.flag);
+  ctx.tuple.flag=flag;
+
     ctx.tuple.get(itf, 1, 2)(pos, info, errT)}
 
   def polyValOf(itf: vpr.Exp)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo)(ctx: Context): vpr.Exp =
     {val nothing= itf.typ
-    ctx.tuple.flag= Vector(dyn);
-    println(ctx.tuple.flag);
+    ctx.tuple.flag= flag;
+   
     ctx.tuple.get(itf, 0, 2)(pos, info, errT)}
 }
