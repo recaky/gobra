@@ -205,71 +205,36 @@ class StructEncoding extends TypeEncoding {
       } yield ex.get(vBase, idx, cptParam(fs)(ctx))(loc)(ctx)
 
     case (upd: in.StructUpdate) :: ctx.Struct(fs) =>
-      
-      val name=ctx.freshNames.next()
-      val typek = in.StructT(Vector.empty, Addressability.Exclusive)
-       
-        val x = in.LocalVar(name, typek)(upd.info)
-        //val args= Vector (x)
-        val args= Vector ()
-        val  vX = ctx.variable(x)
-      
-      
-      
-      
-      
-      for {
-        _<-local(vX)
+    for {
+        
         vBase <- ctx.expression(upd.base)
         idx = indexOfField(fs, upd.field)
         vVal <- ctx.expression(upd.newVal)
-        res<-(sequence((args).map(arg => ctx.expression(arg)))).map(ex.update(vBase,idx,vVal, cptParam(fs)(ctx),_ )(upd)(ctx))
         
-      } yield res
+        
+      } yield ex.update(vBase,idx,vVal, cptParam(fs)(ctx))(upd)(ctx)
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Exclusive =>
-        
-         
-        val name=ctx.freshNames.next()
-        val typek = in.StructT(Vector.empty, Addressability.Exclusive)
-       
-        val x = in.LocalVar(name, typek)(e.info)
-        val  vX = ctx.variable(x)
-      
         val fieldDefaults = fs.map(f => in.DfltVal(f.typ)(e.info))
-        for {
-        _<-local(vX)
-        res <- sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
-        } yield res
+         sequence(fieldDefaults.map(ctx.expression)).map(ex.create(_, cptParam(fs)(ctx))(e)(ctx))
+        
         
 
     case (e: in.DfltVal) :: ctx.Struct(fs) / Shared =>
      
-    val length= fs.length
+    
     
     val (pos, info, errT) = e.vprMeta
      unit(shDfltFunc(Vector.empty, fs)(pos, info, errT)(ctx))
 
     case (lit: in.StructLit) :: ctx.Struct(fs) =>
         
-        val args = lit.args 
-        val name=ctx.freshNames.next()
-        val typek = in.StructT(Vector.empty, Addressability.Exclusive)
-       
-        val x = in.LocalVar(name, typek)(lit.info)
-        val  vX = ctx.variable(x)
-      
-      
-        val argsy = args 
         
+        
+        (sequence((lit.args).map(arg => ctx.expression(arg)))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
+
+
        
-        for {
-          _<- global(vX)
-
-          res <- (sequence((argsy).map(arg => ctx.expression(arg)))).map(ex.create(_, cptParam(fs)(ctx) )(lit)(ctx))
-
-
-        } yield res
 
         
         

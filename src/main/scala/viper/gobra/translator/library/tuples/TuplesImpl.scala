@@ -40,7 +40,7 @@ class TuplesImpl extends Tuples {
     if (arity==0) { vpr.DomainFuncApp(
       funcname = "default_tuple",
       args = Seq(vpr.IntLit(0)()),
-      typVarMap = Map(vpr.TypeVar("T")->vpr.Int)
+      typVarMap = Map(vpr.TypeVar("T")->domainType)
     )(vpr.NoPosition,vpr.NoInfo, domainType, s"StructOps",vpr.NoTrafos)}
 
 

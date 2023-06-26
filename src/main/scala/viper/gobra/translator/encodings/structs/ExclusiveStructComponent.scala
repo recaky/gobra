@@ -29,10 +29,10 @@ trait ExclusiveStructComponent extends Generator {
     * The default implementation is:
     * update(e, i, v, n) -> create( get(e, 0, n), ..., get(e, i-1, n), v, get(e, i+1, n), ..., get(e, n-1, n) )
     * */
-  def update(base: vpr.Exp, idx: Int, newVal: vpr.Exp, t: ComponentParameter, name: Vector[vpr.Exp])(src: in.Node)(ctx: Context): vpr.Exp = {
+  def update(base: vpr.Exp, idx: Int, newVal: vpr.Exp, t: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = {
     
   
-    val lowerArgs =name ++ ((0 until idx).map(l => get(base, l, t)(src)(ctx)).toVector)
+    val lowerArgs =((0 until idx).map(l => get(base, l, t)(src)(ctx)).toVector)
     val higherArgs = ((idx + 1) until t.size).map(l => get(base, l, t)(src)(ctx)).toVector
     create(lowerArgs ++ (newVal +: higherArgs), t)(src)(ctx)
   }
