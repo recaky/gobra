@@ -31,7 +31,7 @@ trait ExclusiveStructComponent extends Generator {
     * */
   def update(base: vpr.Exp, idx: Int, newVal: vpr.Exp, t: ComponentParameter)(src: in.Node)(ctx: Context): vpr.Exp = {
     
-  
+    ctx.tuple.flag= t map (_._1); 
     val lowerArgs =((0 until idx).map(l => get(base, l, t)(src)(ctx)).toVector)
     val higherArgs = ((idx + 1) until t.size).map(l => get(base, l, t)(src)(ctx)).toVector
     create(lowerArgs ++ (newVal +: higherArgs), t)(src)(ctx)
