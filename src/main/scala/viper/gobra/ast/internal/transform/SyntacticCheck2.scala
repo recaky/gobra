@@ -4,7 +4,7 @@
 //
 // Copyright (c) 2011-2021 ETH Zurich.
 
-/*package viper.gobra.ast.internal.transform
+package viper.gobra.ast.internal.transform
 
 import viper.gobra.ast.{internal => in}
 import viper.gobra.reporting.Source
@@ -27,24 +27,17 @@ object SyntacticCheck2 extends InternalTransform {
 
       def checkBody(m: in.Member): Unit = m match {
         case m: in.Function =>
+        
           m.body match {
             case Some(in.MethodBody(_, seqn, _)) =>
               seqn.stmts.foreach(
                 s => s.visit {
-                  case elem: in.Stmt =>
-                    if (checkStmt(elem)) {
-                      println("The function " + m.name + " contains subslicing expressions");
-                      m.Annotation().setslices(0)
-                      println(m.Annotation().slices)
-                      //m.withInfo(createAnnotatedInfo(m.info))
-                      return
-                    } else {}
-                  case _ =>
+                 chechSameEncoding(s,m,p);
               })
               println("The function " + m.name + " does not contain subslicing expressions")
-              m.Annotation().setslices(1)
-              println(m.Annotation().slices)
-            case _ => m.Annotation().setslices(1) 
+              m.Annotation.setslices(1)
+              println(m.Annotation.slices)
+            case _ => m.Annotation.setslices(1) 
           }
         case _ =>
       }
@@ -52,10 +45,24 @@ object SyntacticCheck2 extends InternalTransform {
       /*
       Checks the expressions for subslicing expressions
        */
-      def checkExpr(e: in.Expr): Boolean = {
-        var slice = false
+      def checkExpr(e: in.Expr, m:in.Member, p:in.Program): Boolean = {
+        var same = true
         e.visit {
-          case elem: in.Slice => slice = true
+          case elem: in.FunctionLitLike => {
+ val member = elem.asInstanceOf[in.Function];
+        if (member.Annotation.slices==m.Annotation.slices) {true} else {
+          val newMember = in.Function( member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, None)(member.info);
+          methodsToAdd += newMember;
+          false
+
+
+}
+
+
+
+
+
+          }
           case _ =>
         }
         slice
@@ -64,15 +71,21 @@ object SyntacticCheck2 extends InternalTransform {
       /*
       Checks the statements for subslicing expressions
        */
-      def checkSameEncoding(s: in.Stmt, m: in.Member, p: in.Program): Boolean = s match {
-        case s: in.If => checkSameEncoding(s.cond) && checkSameEncoding(s.thn) && checkSameEncoding(s.els)
-        case s: in.While =>  checkSameEncoding(s.cond) && checkSameEncoding(s.body)
-        case s: in.SingleAss => checkSameEncoding(s.right)
+      def checkSameEncoding(s: in.Stmt, m: in.Member, p: in.Program):Boolean = 
+      s match {
+        case s: in.If => checkExpr(s.cond,m ,p) && checkSameEncoding(s.thn,m,p) && checkSameEncoding(s.els,m,p)
+        case s: in.While =>  checkExpr(s.cond,m,p) && checkSameEncoding(s.body,m,p)
+        case s: in.SingleAss => checkExpr(s.right,m,p)
         case s: in.FunctionCall => {
-        val member = p.lookup(s.func)
-        if (member.slices==m.slices) {} else {
-          val newMember = in.Function( member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, None)(member.info)
-          methodsToAdd += newMember
+        val member = p.table.lookup(s.func).asInstanceOf[in.Function];
+        if (member.Annotation.slices==m.Annotation.slices) {true} else {
+
+            
+
+
+          val newMember = in.Function( member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, None)(member.info);
+          methodsToAdd += newMember;
+          false
 
 
 }
@@ -84,10 +97,11 @@ object SyntacticCheck2 extends InternalTransform {
 
         }
         case s: in.MethodCall => {
-        val member = p.lookup(s.meth)
-        if (member.slices==m.slices) {} else {
+        val member = p.table.lookup(s.meth).asInstanceOf[in.Method];
+        if (member.Annotation.slices==m.Annotation.slices) {true} else {
         val newMember = in.Method( member.receiver, member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, None)(member.info)
-        methodsToAdd += newMember
+        methodsToAdd += newMember;
+        false
                 
 }
 
@@ -115,4 +129,3 @@ object SyntacticCheck2 extends InternalTransform {
     )(p.info)
   }
 }
-*/
