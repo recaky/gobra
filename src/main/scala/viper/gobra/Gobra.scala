@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.StrictLogging
 import org.slf4j.LoggerFactory
 import viper.gobra.ast.frontend.PPackage
 import viper.gobra.ast.internal.Program
-import viper.gobra.ast.internal.transform.{CGEdgesTerminationTransform, ConstantPropagation, InternalTransform, OverflowChecksTransform, SyntacticCheck}
+import viper.gobra.ast.internal.transform.{CGEdgesTerminationTransform, ConstantPropagation, InternalTransform, OverflowChecksTransform, SyntacticCheck, SyntacticCheck2}
 import viper.gobra.backend.BackendVerifier
 import viper.gobra.frontend.info.{Info, TypeInfo}
 import viper.gobra.frontend.{Config, Desugar, PackageInfo, Parser, ScallopGobraConfig}
@@ -282,7 +282,7 @@ class Gobra extends GoVerifier with GoIdeVerifier {
     // constant propagation does not cause duplication of verification errors caused
     // by overflow checks (if enabled) because all overflows in constant declarations 
     // can be found by the well-formedness checks.
-    var transformations: Vector[InternalTransform] = Vector(SyntacticCheck, CGEdgesTerminationTransform, ConstantPropagation)
+    var transformations: Vector[InternalTransform] = Vector(SyntacticCheck,SyntacticCheck2, CGEdgesTerminationTransform, ConstantPropagation)
     if (config.checkOverflows) {
       transformations :+= OverflowChecksTransform
     }

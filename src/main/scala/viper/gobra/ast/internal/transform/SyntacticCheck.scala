@@ -11,6 +11,7 @@ import viper.gobra.reporting.Source
 //import viper.gobra.reporting.Source.SlicingExpressionAnnotation
 import viper.gobra.reporting.Source.Parser.Single
 import viper.gobra.util.Violation.violation
+import scala.util.Random
 
 /**
   * Transformation responsible for generating call-graph edges from interface methods to their implementations' methods.
@@ -18,6 +19,10 @@ import viper.gobra.util.Violation.violation
   */
 object SyntacticCheck extends InternalTransform {
   override def name(): String = "syntactic_check_for_slices"
+   val random= new Random()
+   var methodsToAdd: Set[in.Member] = Set.empty
+  var methodsToRemove: Set[in.Member]= Set.empty
+   var definedFunctionsDelta: Map[in.FunctionProxy, in.FunctionLikeMember] = Map.empty 
 
   /**
     * Program-to-program transformation
@@ -26,26 +31,17 @@ object SyntacticCheck extends InternalTransform {
     case in.Program(_, members, _) =>
 
       def checkBody(m: in.Member): Unit = m match {
-        case m: in.Function =>
-          m.body match {
-            case Some(in.MethodBody(_, seqn, _)) =>
-              seqn.stmts.foreach(
-                s => s.visit {
-                  case elem: in.Stmt =>
-                    if (checkStmt(elem)) {
-                      println("The function " + m.name + " contains subslicing expressions");
-                      m.Annotation.setslices(0)
-                      println(m.Annotation.slices)
-                      //m.withInfo(createAnnotatedInfo(m.info))
-                      return
-                    } else {}
-                  case _ =>
-              })
-              println("The function " + m.name + " does not contain subslicing expressions")
-              m.Annotation.setslices(1)
-              
-            case _ => m.Annotation.setslices(1) 
-          }
+        case m: in.Function =>{m.Annotation.setslices(random.nextInt(2));
+         val proxy= in.FunctionProxy(m.name.name + "$" + m.Annotation.slices)(m.info)
+          var function = in.Function(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
+          function.Annotation.setslices(m.Annotation.slices);
+         
+          methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= proxy -> function
+        
+        
+        
+        }
+       
         case _ =>
       }
 
@@ -83,8 +79,8 @@ object SyntacticCheck extends InternalTransform {
 
     in.Program(
       types = p.types,
-      members = p.members,
-      table = p.table,
+       members = p.members.diff(methodsToRemove.toSeq).appendedAll(methodsToAdd),
+      table = p.table.merge(new in.LookupTable(definedFunctions = definedFunctionsDelta)),
     )(p.info)
   }
 }
