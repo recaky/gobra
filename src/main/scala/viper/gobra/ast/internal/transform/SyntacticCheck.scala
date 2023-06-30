@@ -31,6 +31,7 @@ object SyntacticCheck extends InternalTransform {
     case in.Program(_, members, _) =>
 
       def checkBody(m: in.Member): Unit = m match {
+        
         case m: in.Function =>{m.Annotation.setslices(random.nextInt(2));
          val proxy= in.FunctionProxy(m.name.name + "$" + m.Annotation.slices)(m.info)
           var function = in.Function(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
