@@ -105,8 +105,8 @@ class SharedStructComponentImpl extends SharedStructComponent {
     val domain = vpr.Domain(
       name = domainName,
       typVars = typeVars,
-      functions = revFuncs ++ getFuncs,
-      axioms = equalityAxiom +: injective
+      functions = getFuncs,
+      axioms = Seq(equalityAxiom )
     )()
 
     genDomains ::= domain
