@@ -21,6 +21,7 @@ object SyntacticCheck2 extends InternalTransform {
   var methodsToAdd: Set[in.Member] = Set.empty
   var methodsToRemove: Set[in.Member]= Set.empty
    var definedFunctionsDelta: Map[in.FunctionProxy, in.FunctionLikeMember] = Map.empty 
+   var definedMethodsDelta: Map [in.MethodProxy, in.MethodLikeMember]= Map.empty
   /**
     * Program-to-program transformation
     */
@@ -29,27 +30,39 @@ object SyntacticCheck2 extends InternalTransform {
 
       def checkBody(m: in.Member): Unit = {m match {
         case m: in.Function => {
-         
-          m.body match {
+         m.body match {
             case Some(in.MethodBody(_, seqn, _)) =>
               seqn.stmts.foreach(
-                s => s.visit {
-                  
-                  case elem:in.Stmt=> {checkStmt(s,m,p);
-                  }
-
-
-                })}
+                s => s.visit {case elem:in.Stmt=> {checkStmt(s,m,p);}})}
                 val member=m.asInstanceOf[in.Function];
+                val newMember= in.Function(member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, member.body.map(a=>computeNewBody(a,m)) )(member.info);
+                methodsToAdd+= newMember;
+                methodsToRemove+= m;}
+         case m: in.Method => {
+         m.body match {
+            case Some(in.MethodBody(_, seqn, _)) =>
+              seqn.stmts.foreach(
+                s => s.visit {case elem:in.Stmt=> {checkStmt(s,m,p);}})}
+                val member=m.asInstanceOf[in.Method];
+                val newMember= in.Method(member.receiver, member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, member.body.map(a=>computeNewBody(a,m)) )(member.info);
+                methodsToAdd+= newMember;
+                methodsToRemove+= m;}      
                 
-      val newMember= in.Function(member.name, member.args, member.results, member.pres, member.posts, member.terminationMeasures, member.body.map(a=>computeNewBody(a,m)) )(member.info);
-
-      
-      methodsToAdd+= newMember;
-      methodsToRemove+= m; 
                 
                 
-                }}
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                }
                 
 
       
@@ -69,12 +82,39 @@ object SyntacticCheck2 extends InternalTransform {
             if (p.table.definedFunctions.contains(nameoffunction)) {}
             else {
               val function= (p.table.lookup(in.FunctionProxy(s.func.name + "$" + flip(m.Annotation.slices))(s.func.info))).asInstanceOf[in.Function]
-              
-             
               var newMember= in.Function(nameoffunction, function.args, function.results, function.pres, function.posts, function.terminationMeasures, None)(function.info);
                newMember.Annotation.setslices(m.Annotation.slices);
                 methodsToAdd+= newMember; definedFunctionsDelta+= nameoffunction->newMember;
                 }}
+      case s: in.GoFunctionCall => {
+          val nameoffunction = in.FunctionProxy(s.func.name + "$" + m.Annotation.slices)(s.func.info)
+            if (p.table.definedFunctions.contains(nameoffunction)) {}
+            else {
+              val function= (p.table.lookup(in.FunctionProxy(s.func.name + "$" + flip(m.Annotation.slices))(s.func.info))).asInstanceOf[in.Function]
+              var newMember= in.Function(nameoffunction, function.args, function.results, function.pres, function.posts, function.terminationMeasures, None)(function.info);
+               newMember.Annotation.setslices(m.Annotation.slices);
+                methodsToAdd+= newMember; definedFunctionsDelta+= nameoffunction->newMember;
+                }}
+                
+      case s: in.MethodCall => {
+            val nameofmethod = in.MethodProxy(s.meth.name + "$" + m.Annotation.slices, s.meth.uniqueName + "$" + m.Annotation.slices)(s.meth.info)
+              if (p.table.definedMethods.contains(nameofmethod)) {}
+            else {
+              val method= (p.table.lookup(in.MethodProxy(s.meth.name + "$" + flip(m.Annotation.slices), s.meth.uniqueName+ "$" + flip(m.Annotation.slices))(s.meth.info))).asInstanceOf[in.Method]
+              var newMember= in.Method(method.receiver, nameofmethod, method.args, method.results, method.pres, method.posts, method.terminationMeasures, None)(method.info);
+               newMember.Annotation.setslices(m.Annotation.slices);
+                methodsToAdd+= newMember; definedMethodsDelta+= nameofmethod->newMember;
+                }}
+      case s: in.GoMethodCall => {
+            val nameofmethod = in.MethodProxy(s.meth.name + "$" + m.Annotation.slices, s.meth.uniqueName + "$" + m.Annotation.slices)(s.meth.info)
+              if (p.table.definedMethods.contains(nameofmethod)) {}
+            else {
+              val method= (p.table.lookup(in.MethodProxy(s.meth.name + "$" + flip(m.Annotation.slices), s.meth.uniqueName+ "$" + flip(m.Annotation.slices))(s.meth.info))).asInstanceOf[in.Method]
+              var newMember= in.Method(method.receiver, nameofmethod, method.args, method.results, method.pres, method.posts, method.terminationMeasures, None)(method.info);
+               newMember.Annotation.setslices(m.Annotation.slices);
+                methodsToAdd+= newMember; definedMethodsDelta+= nameofmethod->newMember;
+                }}
+      
        case _=>
                 
         
@@ -85,7 +125,10 @@ object SyntacticCheck2 extends InternalTransform {
           case i@in.If(cond, thn, els) => in.If(cond, transformStmt(thn,m),transformStmt(els,m))(i.info)
           case w@in.While(cond, invs, terminationMeasure, body) =>in.While(cond,invs, terminationMeasure, transformStmt(body,m))(w.info)
           case s@in.FunctionCall(targets,func,args) =>{  val nameoffunction = in.FunctionProxy(func.name + "$" + m.Annotation.slices)(func.info); in.FunctionCall (targets, nameoffunction,args)(s.info); }
-          
+          case s@in.GoFunctionCall(func, args) =>{  val nameoffunction = in.FunctionProxy(func.name + "$" + m.Annotation.slices)(func.info); in.GoFunctionCall ( nameoffunction,args)(s.info); }
+          case m@in.MethodCall(targets, recv, meth, args) => {println (m.Annotation.slices); val nameofmethod = in.MethodProxy(meth.name + "$" + m.Annotation.slices, meth.uniqueName+ "$" + m.Annotation.slices)(meth.info); in.MethodCall (targets,recv, nameofmethod,args)(m.info);}
+          case m@in.GoMethodCall(recv,meth, args) =>{  val nameofmethod = in.MethodProxy(meth.name + "$" + m.Annotation.slices, meth.uniqueName+ "$" + m.Annotation.slices)(meth.info); in.GoMethodCall (recv, nameofmethod,args)(s.info); }
+
           case _=> s
 
 
@@ -119,7 +162,7 @@ object SyntacticCheck2 extends InternalTransform {
     in.Program(
       types = p.types,
       members = p.members.diff(methodsToRemove.toSeq).appendedAll(methodsToAdd),
-      table = p.table.merge(new in.LookupTable(definedFunctions = definedFunctionsDelta)),
+      table = (p.table.merge(new in.LookupTable(definedFunctions = definedFunctionsDelta))).merge(new in.LookupTable(definedMethods = definedMethodsDelta)),
     )(p.info)
   }
 }

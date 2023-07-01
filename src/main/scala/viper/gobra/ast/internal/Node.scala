@@ -8,6 +8,7 @@ package viper.gobra.ast.internal
 
 import viper.gobra.ast.internal.utility.Nodes
 import viper.gobra.reporting.Source
+import viper.gobra.ast.internal.EncodingConfig
 import viper.silver.ast.utility.Visitor
 import viper.silver.ast.utility.rewriter.Traverse.Traverse
 import viper.silver.ast.utility.rewriter.{StrategyBuilder, Traverse}
@@ -17,8 +18,9 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 
 trait Node extends Rewritable with Product {
-
+ 
   def info: Source.Parser.Info
+ 
    object Annotation{
     var slices: Integer = 1
     def setslices(a:Integer):Unit={

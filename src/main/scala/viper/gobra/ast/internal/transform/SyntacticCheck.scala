@@ -23,7 +23,7 @@ object SyntacticCheck extends InternalTransform {
    var methodsToAdd: Set[in.Member] = Set.empty
   var methodsToRemove: Set[in.Member]= Set.empty
    var definedFunctionsDelta: Map[in.FunctionProxy, in.FunctionLikeMember] = Map.empty 
-
+var definedMethodsDelta: Map[in.MethodProxy, in.MethodLikeMember] = Map.empty 
   /**
     * Program-to-program transformation
     */
@@ -38,6 +38,16 @@ object SyntacticCheck extends InternalTransform {
           function.Annotation.setslices(m.Annotation.slices);
          
           methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= proxy -> function
+        
+        
+        
+        }
+         case m: in.Method =>{m.Annotation.setslices(random.nextInt(2));
+         val proxy= in.MethodProxy(m.name.name + "$" + m.Annotation.slices, m.name.uniqueName + "$" + m.Annotation.slices)(m.info)
+          var method = in.Method(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
+          method.Annotation.setslices(m.Annotation.slices);
+         
+          methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= proxy -> method
         
         
         
@@ -81,7 +91,7 @@ object SyntacticCheck extends InternalTransform {
     in.Program(
       types = p.types,
        members = p.members.diff(methodsToRemove.toSeq).appendedAll(methodsToAdd),
-      table = p.table.merge(new in.LookupTable(definedFunctions = definedFunctionsDelta)),
+      table = (p.table.merge(new in.LookupTable(definedFunctions = definedFunctionsDelta))).merge(new in.LookupTable(definedMethods = definedMethodsDelta)),
     )(p.info)
   }
 }
