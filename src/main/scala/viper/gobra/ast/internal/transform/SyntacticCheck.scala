@@ -32,20 +32,40 @@ var definedMethodsDelta: Map[in.MethodProxy, in.MethodLikeMember] = Map.empty
 
       def checkBody(m: in.Member): Unit = m match {
         
-        case m: in.Function =>{m.Annotation.setslices(random.nextInt(2));
-         val proxy= in.FunctionProxy(m.name.name + "$" + m.Annotation.slices)(m.info)
+        case m: in.Function =>{m.Moje.setslices(random.nextInt(2));
+         val proxy= in.FunctionProxy(m.name.name + "$" + m.Moje.slices)(m.info)
           var function = in.Function(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
-          function.Annotation.setslices(m.Annotation.slices);
+          function.Moje.setslices(m.Moje.slices);
          
           methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= proxy -> function
         
         
         
         }
-         case m: in.Method =>{m.Annotation.setslices(random.nextInt(2));
-         val proxy= in.MethodProxy(m.name.name + "$" + m.Annotation.slices, m.name.uniqueName + "$" + m.Annotation.slices)(m.info)
+        case m: in.PureFunction =>{m.Moje.setslices(random.nextInt(2));
+         val proxy= in.FunctionProxy(m.name.name + "$" + m.Moje.slices)(m.info)
+          var function = in.PureFunction(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
+          function.Moje.setslices(m.Moje.slices);
+         
+          methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= proxy -> function
+        
+        
+        
+        }
+         case m: in.Method =>{m.Moje.setslices(random.nextInt(2));
+         val proxy= in.MethodProxy(m.name.name + "$" + m.Moje.slices, m.name.uniqueName + "$" + m.Moje.slices)(m.info)
           var method = in.Method(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
-          method.Annotation.setslices(m.Annotation.slices);
+          method.Moje.setslices(m.Moje.slices);
+         
+          methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= proxy -> method
+        
+        
+        
+        }
+           case m: in.PureMethod =>{m.Moje.setslices(random.nextInt(2));
+         val proxy= in.MethodProxy(m.name.name + "$" + m.Moje.slices, m.name.uniqueName + "$" + m.Moje.slices)(m.info)
+          var method = in.PureMethod(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
+          method.Moje.setslices(m.Moje.slices);
          
           methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= proxy -> method
         
@@ -91,7 +111,7 @@ var definedMethodsDelta: Map[in.MethodProxy, in.MethodLikeMember] = Map.empty
     in.Program(
       types = p.types,
        members = p.members.diff(methodsToRemove.toSeq).appendedAll(methodsToAdd),
-      table = (p.table.merge(new in.LookupTable(definedFunctions = definedFunctionsDelta))).merge(new in.LookupTable(definedMethods = definedMethodsDelta)),
+      table = (p.table.merge(new in.LookupTable(definedMethods = definedMethodsDelta))).merge(new in.LookupTable(definedFunctions = definedFunctionsDelta)),
     )(p.info)
   }
 }

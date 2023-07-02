@@ -21,8 +21,8 @@ trait Node extends Rewritable with Product {
  
   def info: Source.Parser.Info
  
-   object Annotation{
-    var slices: Integer = 1
+   object Moje{
+    var slices: Integer = 0
     def setslices(a:Integer):Unit={
       this.slices= a
 }}
