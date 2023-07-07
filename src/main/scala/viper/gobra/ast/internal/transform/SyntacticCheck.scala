@@ -24,6 +24,8 @@ object SyntacticCheck extends InternalTransform {
   var methodsToRemove: Set[in.Member]= Set.empty
    var definedFunctionsDelta: Map[in.FunctionProxy, in.FunctionLikeMember] = Map.empty 
 var definedMethodsDelta: Map[in.MethodProxy, in.MethodLikeMember] = Map.empty 
+var definedMPredicatesDelta: Map[in.MPredicateProxy, in.MPredicateLikeMember]= Map.empty
+var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = Map.empty
   /**
     * Program-to-program transformation
     */
@@ -72,6 +74,29 @@ var definedMethodsDelta: Map[in.MethodProxy, in.MethodLikeMember] = Map.empty
         
         
         }
+
+        case m: in.MPredicate =>{m.Moje.setslices(random.nextInt(2));
+         val proxy= in.MPredicateProxy(m.name.name + "$" + m.Moje.slices, m.name.uniqueName + "$" + m.Moje.slices)(m.info)
+          var predicate = in.MPredicate(m.receiver,proxy,m.args, m.body)(m.info);
+          predicate.Moje.setslices(m.Moje.slices);
+         
+          methodsToRemove += m; methodsToAdd += predicate ; definedMPredicatesDelta+= proxy -> predicate
+        
+        
+        
+        }
+        case m: in.FPredicate =>{m.Moje.setslices(random.nextInt(2));
+         val proxy= in.FPredicateProxy(m.name.name + "$" + m.Moje.slices)(m.info)
+          var predicate = in.FPredicate(proxy,m.args, m.body)(m.info);
+          predicate.Moje.setslices(m.Moje.slices);
+         
+          methodsToRemove += m; methodsToAdd += predicate ; definedFPredicatesDelta+= proxy -> predicate
+        
+        
+        
+        }
+
+
        
         case _ =>
       }
@@ -111,7 +136,7 @@ var definedMethodsDelta: Map[in.MethodProxy, in.MethodLikeMember] = Map.empty
     in.Program(
       types = p.types,
        members = p.members.diff(methodsToRemove.toSeq).appendedAll(methodsToAdd),
-      table = (p.table.merge(new in.LookupTable(definedMethods = definedMethodsDelta))).merge(new in.LookupTable(definedFunctions = definedFunctionsDelta)),
+      table = p.table.merge(new in.LookupTable(definedMethods = definedMethodsDelta)).merge(new in.LookupTable(definedFunctions = definedFunctionsDelta)).merge(new in.LookupTable(definedMPredicates = definedMPredicatesDelta)).merge(new in.LookupTable(definedFPredicates = definedFPredicatesDelta)),
     )(p.info)
   }
 }

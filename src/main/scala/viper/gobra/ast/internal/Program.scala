@@ -242,6 +242,7 @@ case class Function(
                      override val posts: Vector[Assertion],
                      override val terminationMeasures: Vector[TerminationMeasure],
                      body: Option[MethodBody]
+
                    )(val info: Source.Parser.Info) extends Member with FunctionMember
 
 case class PureFunction(

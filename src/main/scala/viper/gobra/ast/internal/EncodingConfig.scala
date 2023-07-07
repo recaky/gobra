@@ -16,6 +16,5 @@ import viper.silver.{ast => vpr}
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-class EncodingConfig (a:Integer) {
-val slices:Integer=a;
-}
+class EncodingConfig (val slices:Integer= 0) 
+

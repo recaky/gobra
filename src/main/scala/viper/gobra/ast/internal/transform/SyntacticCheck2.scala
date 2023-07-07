@@ -22,6 +22,7 @@ object SyntacticCheck2 extends InternalTransform {
   var methodsToRemove: Set[in.Member]= Set.empty
    var definedFunctionsDelta: Map[in.FunctionProxy, in.FunctionLikeMember] = Map.empty 
    var definedMethodsDelta: Map [in.MethodProxy, in.MethodLikeMember]= Map.empty
+   
   /**
     * Program-to-program transformation
     */
@@ -108,7 +109,7 @@ object SyntacticCheck2 extends InternalTransform {
             else {
               val method= (p.table.lookup(in.MethodProxy(s.meth.name + "$" + flip(m), s.meth.uniqueName+ "$" + flip(m))(s.meth.info))).asInstanceOf[in.Method]
               var newMember= in.Method(method.receiver, nameofmethod, method.args, method.results, method.pres, method.posts, method.terminationMeasures, None)(method.info);
-              println("check" + m);
+             
                newMember.Moje.setslices(m);
                 methodsToAdd+= newMember; definedMethodsDelta+= nameofmethod->newMember;
                 }}
@@ -132,6 +133,8 @@ object SyntacticCheck2 extends InternalTransform {
           case i@in.If(cond, thn, els) => in.If(cond, transformStmt(thn,m),transformStmt(els,m))(i.info)
           case w@in.While(cond, invs, terminationMeasure, body) =>in.While(cond,invs, terminationMeasure, transformStmt(body,m))(w.info)
           case d@in.Defer(f@in.FunctionCall(targets,func,args)) => val nameoffunction = in.FunctionProxy(func.name + "$" + m)(func.info);in.Defer(in.FunctionCall(targets,nameoffunction,args)(f.info))(d.info)
+          case d@in.Defer(f@in.MethodCall(targets,recv,meth,args)) => val nameofmethod = in.MethodProxy(meth.name + "$" + m, meth.uniqueName+ "$" + m)(meth.info);in.Defer(in.MethodCall(targets,recv,nameofmethod,args)(f.info))(d.info)
+
           case s@in.FunctionCall(targets,func,args) =>{  val nameoffunction = in.FunctionProxy(func.name + "$" + m)(func.info); in.FunctionCall (targets, nameoffunction,args)(s.info); }
           case s@in.GoFunctionCall(func, args) =>{  val nameoffunction = in.FunctionProxy(func.name + "$" + m)(func.info); in.GoFunctionCall ( nameoffunction,args)(s.info); }
           case s@in.MethodCall(targets, recv, meth, args) => { val nameofmethod = in.MethodProxy(meth.name + "$" + m, meth.uniqueName+ "$" + m)(meth.info); in.MethodCall (targets,recv, nameofmethod,args)(s.info);}

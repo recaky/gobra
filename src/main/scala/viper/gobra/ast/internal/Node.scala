@@ -21,6 +21,12 @@ trait Node extends Rewritable with Product {
  
   def info: Source.Parser.Info
  
+   
+   val encodingconfig= EncodingConfig
+   
+   
+   
+   
    object Moje{
     var slices: Integer = 0
     def setslices(a:Integer):Unit={
