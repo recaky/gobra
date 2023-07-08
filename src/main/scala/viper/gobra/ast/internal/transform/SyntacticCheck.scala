@@ -12,6 +12,7 @@ import viper.gobra.reporting.Source
 import viper.gobra.reporting.Source.Parser.Single
 import viper.gobra.util.Violation.violation
 import scala.util.Random
+import viper.gobra.ast.internal.EncodingConfig
 
 /**
   * Transformation responsible for generating call-graph edges from interface methods to their implementations' methods.
@@ -34,40 +35,46 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
 
       def checkBody(m: in.Member): Unit = m match {
         
-        case m: in.Function =>{m.Moje.setslices(random.nextInt(2));
-         val proxy= in.FunctionProxy(m.name.name + "$" + m.Moje.slices)(m.info)
-          var function = in.Function(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
-          function.Moje.setslices(m.Moje.slices);
+        case m: in.Function =>{
+          val number= random.nextInt(2);
+          val proxy= in.FunctionProxy(m.name.name + "$" + number)(m.info)
+          var function = in.Function(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body,new EncodingConfig( number))(m.info);
+
+          
+          
          
           methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= proxy -> function
         
         
         
         }
-        case m: in.PureFunction =>{m.Moje.setslices(random.nextInt(2));
-         val proxy= in.FunctionProxy(m.name.name + "$" + m.Moje.slices)(m.info)
-          var function = in.PureFunction(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
-          function.Moje.setslices(m.Moje.slices);
+        case m: in.PureFunction =>{
+          val number= random.nextInt(2);
+         val proxy= in.FunctionProxy(m.name.name + "$" + number)(m.info)
+          var function = in.PureFunction(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body, new EncodingConfig(number))(m.info);
+          
          
           methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= proxy -> function
         
         
         
         }
-         case m: in.Method =>{m.Moje.setslices(random.nextInt(2));
-         val proxy= in.MethodProxy(m.name.name + "$" + m.Moje.slices, m.name.uniqueName + "$" + m.Moje.slices)(m.info)
-          var method = in.Method(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
-          method.Moje.setslices(m.Moje.slices);
+         case m: in.Method =>{
+          val number= random.nextInt(2);
+         val proxy= in.MethodProxy(m.name.name + "$" + number, m.name.uniqueName + "$" + number)(m.info)
+          var method = in.Method(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body,new EncodingConfig(number) )(m.info);
+          
          
           methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= proxy -> method
         
         
         
         }
-           case m: in.PureMethod =>{m.Moje.setslices(random.nextInt(2));
-         val proxy= in.MethodProxy(m.name.name + "$" + m.Moje.slices, m.name.uniqueName + "$" + m.Moje.slices)(m.info)
-          var method = in.PureMethod(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body)(m.info);
-          method.Moje.setslices(m.Moje.slices);
+           case m: in.PureMethod =>{
+            val number= random.nextInt(2);
+         val proxy= in.MethodProxy(m.name.name + "$" + number, m.name.uniqueName + "$" + number)(m.info)
+          var method = in.PureMethod(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body, new EncodingConfig(number))(m.info);
+         
          
           methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= proxy -> method
         
@@ -75,20 +82,22 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
         
         }
 
-        case m: in.MPredicate =>{m.Moje.setslices(random.nextInt(2));
-         val proxy= in.MPredicateProxy(m.name.name + "$" + m.Moje.slices, m.name.uniqueName + "$" + m.Moje.slices)(m.info)
-          var predicate = in.MPredicate(m.receiver,proxy,m.args, m.body)(m.info);
-          predicate.Moje.setslices(m.Moje.slices);
+        case m: in.MPredicate =>{
+          val number= random.nextInt(2);
+         val proxy= in.MPredicateProxy(m.name.name + "$" + number, m.name.uniqueName + "$" + number)(m.info)
+          var predicate = in.MPredicate(m.receiver,proxy,m.args, m.body, new EncodingConfig(number))(m.info);
+          
          
           methodsToRemove += m; methodsToAdd += predicate ; definedMPredicatesDelta+= proxy -> predicate
         
         
         
         }
-        case m: in.FPredicate =>{m.Moje.setslices(random.nextInt(2));
-         val proxy= in.FPredicateProxy(m.name.name + "$" + m.Moje.slices)(m.info)
-          var predicate = in.FPredicate(proxy,m.args, m.body)(m.info);
-          predicate.Moje.setslices(m.Moje.slices);
+        case m: in.FPredicate =>{
+          val number= random.nextInt(2);
+         val proxy= in.FPredicateProxy(m.name.name + "$" + number)(m.info)
+          var predicate = in.FPredicate(proxy,m.args, m.body, new EncodingConfig(number))(m.info);
+          
          
           methodsToRemove += m; methodsToAdd += predicate ; definedFPredicatesDelta+= proxy -> predicate
         

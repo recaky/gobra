@@ -22,7 +22,7 @@ trait Node extends Rewritable with Product {
   def info: Source.Parser.Info
  
    
-   val encodingconfig= EncodingConfig
+  
    
    
    

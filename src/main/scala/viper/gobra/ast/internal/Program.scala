@@ -21,6 +21,7 @@ import viper.gobra.translator.Names
 import viper.gobra.util.{Decimal, NumBase, TypeBounds, Violation}
 import viper.gobra.util.TypeBounds.{IntegerKind, UnboundedInteger}
 import viper.gobra.util.Violation.violation
+import viper.gobra.ast.internal.EncodingConfig
 
 import scala.collection.SortedSet
 
@@ -185,7 +186,8 @@ case class Method(
                  override val pres: Vector[Assertion],
                  override val posts: Vector[Assertion],
                  override val terminationMeasures: Vector[TerminationMeasure],
-                 body: Option[MethodBody]
+                 body: Option[MethodBody],
+                 val encodingConfig:EncodingConfig= new EncodingConfig
                  )(val info: Source.Parser.Info) extends Member with MethodMember
 
 case class PureMethod(
@@ -196,7 +198,8 @@ case class PureMethod(
                        override val pres: Vector[Assertion],
                        override val posts: Vector[Assertion],
                        override val terminationMeasures: Vector[TerminationMeasure],
-                       body: Option[Expr]
+                       body: Option[Expr],
+                       val encodingConfig:EncodingConfig= new EncodingConfig
                      )(val info: Source.Parser.Info) extends Member with MethodMember {
   require(results.size <= 1)
 }
@@ -241,7 +244,8 @@ case class Function(
                      override val pres: Vector[Assertion],
                      override val posts: Vector[Assertion],
                      override val terminationMeasures: Vector[TerminationMeasure],
-                     body: Option[MethodBody]
+                     body: Option[MethodBody],
+                     val encodingConfig:EncodingConfig= new EncodingConfig
 
                    )(val info: Source.Parser.Info) extends Member with FunctionMember
 
@@ -252,7 +256,8 @@ case class PureFunction(
                          override val pres: Vector[Assertion],
                          override val posts: Vector[Assertion],
                          override val terminationMeasures: Vector[TerminationMeasure],
-                         body: Option[Expr]
+                         body: Option[Expr],
+                         val encodingConfig:EncodingConfig= new EncodingConfig
                        )(val info: Source.Parser.Info) extends Member with FunctionMember {
   require(results.size <= 1)
 }
@@ -276,7 +281,8 @@ sealed trait FPredicateLikeMember extends Member {
 case class FPredicate(
                        override val name: FPredicateProxy,
                        args: Vector[Parameter.In],
-                       body: Option[Assertion]
+                       body: Option[Assertion],
+                       val encodingConfig:EncodingConfig= new EncodingConfig
                      )(val info: Source.Parser.Info) extends FPredicateLikeMember with PredicateMember
 
 case class BuiltInFPredicate(
@@ -295,7 +301,8 @@ case class MPredicate(
                      receiver: Parameter.In,
                      override val name: MPredicateProxy,
                      args: Vector[Parameter.In],
-                     body: Option[Assertion]
+                     body: Option[Assertion],
+                     val encodingConfig:EncodingConfig= new EncodingConfig
                      )(val info: Source.Parser.Info) extends MPredicateLikeMember with PredicateMember
 
 case class BuiltInMPredicate(
