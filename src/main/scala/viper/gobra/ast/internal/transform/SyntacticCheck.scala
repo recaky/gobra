@@ -37,46 +37,45 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
         
         case m: in.Function =>{
           val number= random.nextInt(2);
-          val proxy= in.FunctionProxy(m.name.name + "$" + number)(m.info)
-          var function = in.Function(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body,new EncodingConfig( number))(m.info);
-
+          val config= new EncodingConfig(number);
           
-          
-         
-          methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= proxy -> function
+          val function = in.Function(m.name,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body,config)(m.info);
+          methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= function.name->function
         
         
         
         }
         case m: in.PureFunction =>{
           val number= random.nextInt(2);
-         val proxy= in.FunctionProxy(m.name.name + "$" + number)(m.info)
-          var function = in.PureFunction(proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body, new EncodingConfig(number))(m.info);
+          val config= new EncodingConfig(number);
+          val function = in.PureFunction(m.name,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body, config)(m.info);
           
          
-          methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= proxy -> function
+          methodsToRemove += m; methodsToAdd += function ; definedFunctionsDelta+= function.name->function
         
         
         
         }
          case m: in.Method =>{
           val number= random.nextInt(2);
-         val proxy= in.MethodProxy(m.name.name + "$" + number, m.name.uniqueName + "$" + number)(m.info)
-          var method = in.Method(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body,new EncodingConfig(number) )(m.info);
+          val config= new EncodingConfig(number);
+         
+          val method = in.Method(m.receiver,m.name,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body,config )(m.info);
           
          
-          methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= proxy -> method
+          methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= method.name->method
         
         
         
         }
            case m: in.PureMethod =>{
             val number= random.nextInt(2);
-         val proxy= in.MethodProxy(m.name.name + "$" + number, m.name.uniqueName + "$" + number)(m.info)
-          var method = in.PureMethod(m.receiver,proxy,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body, new EncodingConfig(number))(m.info);
+            val config= new EncodingConfig(number);
+        
+          val method = in.PureMethod(m.receiver,m.name,m.args,m.results,m.pres,m.posts,m.terminationMeasures, m.body, config)(m.info);
          
          
-          methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= proxy -> method
+          methodsToRemove += m; methodsToAdd += method ; definedMethodsDelta+= method.name->method
         
         
         
@@ -84,22 +83,23 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
 
         case m: in.MPredicate =>{
           val number= random.nextInt(2);
-         val proxy= in.MPredicateProxy(m.name.name + "$" + number, m.name.uniqueName + "$" + number)(m.info)
-          var predicate = in.MPredicate(m.receiver,proxy,m.args, m.body, new EncodingConfig(number))(m.info);
+          val config= new EncodingConfig(number);
+          
+          val predicate = in.MPredicate(m.receiver,m.name,m.args, m.body, config)(m.info);
           
          
-          methodsToRemove += m; methodsToAdd += predicate ; definedMPredicatesDelta+= proxy -> predicate
+          methodsToRemove += m; methodsToAdd += predicate ; definedMPredicatesDelta+= predicate.name->predicate
         
         
         
         }
         case m: in.FPredicate =>{
           val number= random.nextInt(2);
-         val proxy= in.FPredicateProxy(m.name.name + "$" + number)(m.info)
-          var predicate = in.FPredicate(proxy,m.args, m.body, new EncodingConfig(number))(m.info);
+          val config= new EncodingConfig(number);
+          var predicate = in.FPredicate(m.name,m.args, m.body, config)(m.info);
           
          
-          methodsToRemove += m; methodsToAdd += predicate ; definedFPredicatesDelta+= proxy -> predicate
+          methodsToRemove += m; methodsToAdd += predicate ; definedFPredicatesDelta+= predicate.name->predicate
         
         
         
