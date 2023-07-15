@@ -145,9 +145,9 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
       }
 
      def checkStmt(s: in.Stmt, m:EncodingConfig, p: in.Program): Unit = {s match {
-      case s@in.SingleAss(l,r)=> checkExpr(r,m,p)
+      
       case s@in.Block(_,stmts) => stmts.map(a=> checkStmt(a,m,p))
-      case s@in.Seqn(stmts) => stmts.map(a=> checkStmt(a,m,p))
+      
       case i@in.If(cond, thn, els) => {checkExpr(cond,m,p);checkStmt(thn,m,p); checkStmt(els,m,p);}
       case w@in.While(cond, invs, terminationMeasure, body) => {checkExpr(cond,m,p);checkStmt(body,m,p);}
       case d@in.Defer(stmt)=> checkStmt(stmt,m,p)
@@ -198,17 +198,27 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
                 
         
       }}
+      def handleAssignee(s:in.Assignee, m:EncodingConfig,p:in.Program):in.Assignee= s match {
+        case in.Assignee.Pointer(d@in.Deref(exp,typ))=> checkExpr(exp,m,p); in.Assignee.Pointer(in.Deref(transformExpr(exp,m,p),typ)(d.info))
+        case in.Assignee.Field(d@in.FieldRef(recv,field))=> checkExpr(recv,m,p); in.Assignee.Field(in.FieldRef(transformExpr(recv,m,p),field)(d.info))
+        case in.Assignee.Index(d@in.IndexedExp(base,index,typ))=> checkExpr(base,m,p);checkExpr(index,m,p); in.Assignee.Index(in.IndexedExp(transformExpr(base,m,p),transformExpr(index,m,p),typ)(d.info))
+        case _=> s
+
+      }
+     
       def transformStmt(s: in.Stmt, m:EncodingConfig,p:in.Program):in.Stmt= {println(s + "-" + s.getClass);s match {
 
-          case s@in.SingleAss(l,r)=> {in.SingleAss(l,transformExpr(r,m,p))(s.info)}
+          case s@in.SingleAss(l,r)=>{checkExpr(r,m,p);in.SingleAss(handleAssignee(l,m,p),transformExpr(r,m,p))(s.info)}
           case s@in.Block(decls,stmts) => in.Block(decls,stmts.map(a=> transformStmt(a,m,p)))(s.info)
-          case s@in.Seqn(stmts) => in.Seqn(stmts.map(a=> transformStmt(a,m,p)))(s.info)
+          case s@in.Seqn(stmts) => stmts.map(a=> checkStmt(a,m,p)); in.Seqn(stmts.map(a=> transformStmt(a,m,p)))(s.info)
           case i@in.If(cond, thn, els) => in.If(transformExpr(cond,m,p), transformStmt(thn,m,p),transformStmt(els,m,p))(i.info)
           case w@in.While(cond, invs, terminationMeasure, body) =>in.While(transformExpr(cond,m,p),invs.map(a=>transformAssertion(a,m,p)), terminationMeasure match { case Some(tm)=> Some(handleTM(tm,m,p)) case None=>None}, transformStmt(body,m,p))(w.info)
           case d@in.Defer(f@in.FunctionCall(targets,func,args)) => val nameoffunction = in.FunctionProxy(func.name + m.config() )(func.info);in.Defer(in.FunctionCall(targets,nameoffunction,args)(f.info))(d.info)
           case d@in.Defer(f@in.MethodCall(targets,recv,meth,args)) => val nameofmethod = in.MethodProxy(meth.name + m.config(), meth.uniqueName+ m.config())(meth.info);in.Defer(in.MethodCall(targets,recv,nameofmethod,args)(f.info))(d.info)
           case d@in.Defer(s@in.Fold(a@in.Access(e,pr)))=>{checkExpr(pr,m,p);in.Defer(in.Fold(in.Access(transformAccessible(e,m,p),transformExpr(pr,m,p))(a.info))(s.info))(d.info)}
           case d@in.Defer(s@in.Unfold(a@in.Access(e,pr)))=>{checkExpr(pr,m,p);in.Defer(in.Unfold(in.Access(transformAccessible(e,m,p),transformExpr(pr,m,p))(a.info))(s.info))(d.info)}
+          case s@in.Defer(sd@in.PredExprFold(d@in.PredicateConstructor(proxy,proxyT,arg),args,pi))=> args.map(a=>checkExpr(a,m,p));checkExpr(pi,m,p); in.Defer(in.PredExprFold(in.PredicateConstructor(handleProxy(proxy,m,p),proxyT,arg.map(a=> a match {case Some(ex)=>{checkExpr(ex,m,p);Some(transformExpr(ex,m,p))}case None=>None}))(d.info),args.map(a=> transformExpr(a,m,p)),transformExpr(pi,m,p))(sd.info))(s.info)                                                                                                                                                                       
+          case s@in.Defer(sd@in.PredExprUnfold(d@in.PredicateConstructor(proxy,proxyT,arg),args,pi))=> args.map(a=>checkExpr(a,m,p));checkExpr(pi,m,p); in.Defer(in.PredExprUnfold(in.PredicateConstructor(handleProxy(proxy,m,p),proxyT,arg.map(a=> a match {case Some(ex)=>{checkExpr(ex,m,p);Some(transformExpr(ex,m,p))}case None=>None}))(d.info),args.map(a=> transformExpr(a,m,p)),transformExpr(pi,m,p))(sd.info))(s.info)                                                                                                                                                                        
           case s@in.SafeMapLookup(res,succ,d@in.IndexedExp(base,ind,typ))=>{checkExpr(base,m,p);checkExpr(ind,m,p);in.SafeMapLookup(res,succ,in.IndexedExp(transformExpr(base,m,p),transformExpr(ind,m,p),typ)(d.info))(s.info)}
           case s@in.FunctionCall(targets,func,args) =>{  val nameoffunction = in.FunctionProxy(func.name + m.config())(func.info); in.FunctionCall (targets, nameoffunction,args)(s.info); }
           case s@in.GoFunctionCall(func, args) =>{  val nameoffunction = in.FunctionProxy(func.name + m.config())(func.info); in.GoFunctionCall ( nameoffunction,args)(s.info); }
@@ -227,10 +237,12 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
           case s@in.SafeTypeAssertion(res,succ,expr,typ)=>{checkExpr(expr,m,p);in.SafeTypeAssertion(res,succ,transformExpr(expr,m,p),typ)(s.info) }
           case s@in.EffectfulConversion(target,newType, expr)=> checkExpr(expr,m,p); in.EffectfulConversion(target,newType,transformExpr(expr,m,p))(s.info)
           case s@in.PackageWand(d@in.MagicWand(left,right), block)=> in.PackageWand(in.MagicWand(transformAssertion(left,m,p), transformAssertion(right,m,p))(d.info), (block match {case Some(a)=>checkStmt(a,m,p); Some(transformStmt(a,m,p))       case None=> None        }))(s.info)
-          //case s@in.NewMapLit(target,keys,values,entries)=>entries.map(a,b)=> (checkExpr(a,m,p));in.NewMapLit(target,keys,values,entries.map((a,b)=>(transformExpr(a,m,p),transformExpr(b,m,p))))(s.info)                                                                                                                                                                                 
+          case s@in.NewMapLit(target,keys,values,entries)=>in.NewMapLit(target,keys,values,entries.map(a=> a match { case (a,b)=>(transformExpr(a,m,p),transformExpr(b,m,p))}))(s.info) 
+          case s@in.NewSliceLit(target,mem,elems)=>in.NewSliceLit(target,mem,elems.mapValues(a=>{checkExpr(a,m,p);transformExpr(a,m,p)}).toMap)(s.info)
+                                                                                                                                                                                
           case s@in.ApplyWand(d@in.MagicWand(left,right))=>in.ApplyWand(in.MagicWand(transformAssertion(left,m,p), transformAssertion(right,m,p))(d.info))(s.info) 
           case s@in.PatternMatchStmt(exp, cases, strict)=> checkExpr(exp,m,p); in.PatternMatchStmt(transformExpr(exp,m,p), cases.map(a=> a match{ case f@in.PatternMatchCaseStmt(mExp,body)=> {checkStmt(body,m,p); in.PatternMatchCaseStmt(handleMPattern(mExp,m,p),transformStmt(body,m,p))(f.info)} 
-                                                                                                                                              case _=>a} ),strict)(s.info)  
+                                                                                                                                   case _=>a} ),strict)(s.info)  
           case s@in.PredExprFold(d@in.PredicateConstructor(proxy,proxyT,arg),args,pi)=> args.map(a=>checkExpr(a,m,p));checkExpr(pi,m,p); in.PredExprFold(in.PredicateConstructor(handleProxy(proxy,m,p),proxyT,arg.map(a=> a match {case Some(ex)=>{checkExpr(ex,m,p);Some(transformExpr(ex,m,p))}case None=>None}))(d.info),args.map(a=> transformExpr(a,m,p)),transformExpr(pi,m,p))(s.info)                                                                                                                                                                        
           case s@in.PredExprUnfold(d@in.PredicateConstructor(proxy,proxyT,arg),args,pi)=> args.map(a=>checkExpr(a,m,p));checkExpr(pi,m,p); in.PredExprUnfold(in.PredicateConstructor(handleProxy(proxy,m,p),proxyT,arg.map(a=> a match {case Some(ex)=>{checkExpr(ex,m,p);Some(transformExpr(ex,m,p))}case None=>None}))(d.info),args.map(a=> transformExpr(a,m,p)),transformExpr(pi,m,p))(s.info)                                                                                                                                                                        
           case _=> s
@@ -272,11 +284,13 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
 
 
        }}
+        
 
        def handleMPattern(s:in.MatchPattern, m:EncodingConfig, p:in.Program): in.MatchPattern= {s match {
     case s@in.MatchValue(exp)=> checkExpr(exp,m,p); in.MatchValue(transformExpr(exp,m,p))(s.info)
     case s@in.MatchAdt(clause,expr)=>  in.MatchAdt(clause,expr.map(a=> handleMPattern(a,m,p)))(s.info)
     case _=> s}}
+    
      
      
      def handleTM(s:in.TerminationMeasure,m:EncodingConfig,p:in.Program):in.TerminationMeasure= s match{
@@ -285,8 +299,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
       case _=>s
 }
         def transformExpr(s:in.Expr, m:EncodingConfig,p:in.Program):in.Expr= {s match {
-          case s@in.PatternMatchExp(exp,typ,cases,default)=> checkExpr(exp,m,p); in.PatternMatchExp(transformExpr(exp,m,p),typ,cases,(default match{case Some(a)=>checkExpr(a,m,p);Some(transformExpr(a,m,p))
-                                                                                                                                           case None=> None}))(s.info)
+          case s@in.SequenceLit(length,mem,elems)=> in.SequenceLit(length,mem,elems.mapValues(a=> {checkExpr(a,m,p);transformExpr(a,m,p)}).toMap)(s.info)
           case s@in.Let(left,right,ind)=> checkExpr(right,m,p);checkExpr(ind,m,p);in.Let(left,transformExpr(right,m,p),transformExpr(ind,m,p))(s.info)  
           case s@in.PureFunctionCall(func,args,typ) => {val nameoffunction = in.FunctionProxy(func.name + m.config())(func.info); in.PureFunctionCall (nameoffunction,args,typ)(s.info);}
           case s@in.PureMethodCall(recv,meth,args,typ) => {val nameofmethod = in.MethodProxy(meth.name + m.config(), meth.uniqueName + m.config())(meth.info); in.PureMethodCall (recv,nameofmethod,args,typ)(s.info);}
@@ -350,6 +363,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
           case s@in.SetConversion(exp)=> checkExpr(exp,m,p);in.SetConversion(transformExpr(exp,m,p))(s.info)
           case s@in.MultisetLit(mem,exprs)=> exprs.map(a=> checkExpr(a,m,p)); in.MultisetLit(mem,exprs.map(a=>transformExpr(a,m,p)))(s.info)
           case s@in.MultisetConversion(exp)=> checkExpr(exp,m,p);in.MultisetConversion(transformExpr(exp,m,p))(s.info)
+          case s@in.MathMapLit(keys,values,entries)=>in.MathMapLit(keys,values, entries.map(a=> a match {case (a,b)=>{checkExpr(a,m,p);checkExpr(b,m,p);(transformExpr(a,m,p),transformExpr(b,m,p))}}))(s.info)
           case s@in.MapKeys(exp,etyp)=> checkExpr(exp,m,p);in.MapKeys(transformExpr(exp,m,p),etyp)(s.info)
           case s@in.MapValues(exp,etyp)=> checkExpr(exp,m,p);in.MapValues(transformExpr(exp,m,p),etyp)(s.info)
           case s@in.Deref(exp,etyp)=> checkExpr(exp,m,p);in.Deref(transformExpr(exp,m,p),etyp)(s.info)
@@ -364,15 +378,17 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
                                                                                                                                                                                                         case None=> None}),basetyp)(s.info)
           case s@in.Tuple(args)=> args.map(a=> checkExpr(a,m,p)); in.Tuple(args.map(a=> transformExpr(a,m,p)))(s.info)
           case s@in.PatternMatchExp(exp,typ, cases, default)=> checkExpr(exp,m,p); in.PatternMatchExp(transformExpr(exp,m,p),typ, cases.map(a=> a match{ case f@in.PatternMatchCaseExp(mExp,exp)=> {checkExpr(exp,m,p); in.PatternMatchCaseExp(handleMPattern(mExp,m,p),transformExpr(exp,m,p))(f.info)} 
-                                                                                                                                              case _=>a} ),default match {case Some(exp)=> {checkExpr(exp,m,p); Some(transformExpr(exp,m,p))}case None=>None})(s.info)                                                                                                                                                                             
+                                                                                                                                           case _=>a} ),default match {case Some(exp)=> {checkExpr(exp,m,p); Some(transformExpr(exp,m,p))}case None=>None})(s.info)                                                                                                                                                                             
 
 
 
           case s@in.StructLit(typ,args)=>args.map(a=> checkExpr(a,m,p)); in.StructLit(typ,args.map(a=> transformExpr(a,m,p)))(s.info)
           
-         // case s@in.ArrayLit(length,mem,elems)=>
+          case s@in.ArrayLit(length,mem,elems)=>in.ArrayLit(length,mem,elems.mapValues(a=>{checkExpr(a,m,p);transformExpr(a,m,p)}).toMap)(s.info)
+          case s@in.AdtConstructorLit(typ,clause,args)=> in.AdtConstructorLit(typ,clause,args.map(a=> {checkExpr(a,m,p);transformExpr(a,m,p)}))(s.info)
 
-
+          case s@in.PureForall(vars,triggers,body)=>checkExpr(body,m,p); in.PureForall(vars, triggers.map(a=> handleTrigger(a,m,p)), transformExpr(body,m,p))(s.info)
+          case s@in.Exists(vars,triggers,body)=>checkExpr(body,m,p); in.Exists(vars, triggers.map(a=> handleTrigger(a,m,p)), transformExpr(body,m,p))(s.info)
 
 
 
@@ -386,6 +402,20 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
           case s@in.Conditional(cond,thn,els,typ)=> checkExpr(cond,m,p); checkExpr(thn,m,p);checkExpr(els,m,p);in.Conditional(transformExpr(cond,m,p),transformExpr(thn,m,p),transformExpr(els,m,p),typ)(s.info)
           case s@in.FractionalPerm(left,right) => in.FractionalPerm(left,right)(s.info)
           case s@in.Unfolding(a@in.Access(e,pr),ind)=> {checkExpr(pr,m,p);checkExpr(ind,m,p); in.Unfolding(in.Access(transformAccessible(e,m,p),transformExpr(pr,m,p))(a.info),transformExpr(ind,m,p))(s.info)}
+          case s@in.CurrentPerm(in.Accessible.Predicate(op))=>checkPredAccess(op,m,p);in.CurrentPerm(in.Accessible.Predicate(transformPredAccess(op,m,p)))(s.info)
+          case in.PermMinus(exp)=>checkExpr(exp,m,p); in.PermMinus(transformExpr(exp,m,p))(s.info)
+
+          case in.FractionalPerm(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.FractionalPerm(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+          case in.PermAdd(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.PermAdd(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+          case in.PermSub(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.PermSub(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+          case in.PermMul(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.PermMul(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+          case in.PermDiv(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.PermDiv(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+          case in.PermLtCmp(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.PermLtCmp(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+          case in.PermLeCmp(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.PermLeCmp(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+          case in.PermGtCmp(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.PermGtCmp(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+          case in.PermGeCmp(left,right)=>checkExpr(left,m,p);checkExpr(right,m,p); in.PermGeCmp(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)
+
+
           case _=> s}}
 
         
@@ -394,23 +424,27 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
           case s@in.Addressable.Pointer(d@in.Deref(exp,typ))=> checkExpr(exp,m,p); in.Addressable.Pointer(in.Deref(transformExpr(exp,m,p),typ)(d.info))
           case s@in.Addressable.Field(d@in.FieldRef(recv,field))=> checkExpr(recv,m,p); in.Addressable.Field(in.FieldRef(transformExpr(recv,m,p),field)(d.info))
           case s@in.Addressable.Index(d@in.IndexedExp(base,index,typ))=> checkExpr(base,m,p);checkExpr(index,m,p); in.Addressable.Index(in.IndexedExp(transformExpr(base,m,p), transformExpr(index,m,p),typ)(d.info))
-          case _=> s
+          case _=> s}}
+        def handleTriggerExpr(s:in.TriggerExpr,m:EncodingConfig,p:in.Program): in.TriggerExpr= s match {
+            case s@in.Accessible.Predicate(op)=> checkPredAccess(op,m,p); in.Accessible.Predicate(transformPredAccess(op,m,p))
+            case _=> checkExpr(s.asInstanceOf[in.Expr],m,p);transformExpr(s.asInstanceOf[in.Expr],m,p)}
+        def handleTrigger(s:in.Trigger,m:EncodingConfig, p:in.Program):in.Trigger= s match {
+            case s@in.Trigger(exprs)=>in.Trigger(exprs.map(a=> handleTriggerExpr(a,m,p)))(s.info)
+            case _=>s
+}
 
 
 
 
-
-
-
-
-
-        }}
+        
 
         def transformAssertion (s:in.Assertion,m:EncodingConfig,p:in.Program):in.Assertion= { s match {
+          case s@in.SepForall(vars,triggers,body)=> in.SepForall(vars,triggers.map(a=> handleTrigger(a,m,p)),transformAssertion(body,m,p))(s.info)
           case s@in.SepAnd(left, right)=> in.SepAnd(transformAssertion(left,m,p),transformAssertion(right,m,p))(s.info)
           case s@in.ExprAssertion(exp)=> {checkExpr(exp,m,p);in.ExprAssertion(transformExpr(exp,m,p))(s.info)}
           case s@in.Implication(left,right) => {checkExpr(left,m,p);in.Implication(transformExpr(left,m,p),transformAssertion(right,m,p))(s.info) }
           case s@in.Access(e,pr)=> {checkExpr(pr,m,p); in.Access(transformAccessible(e,m,p),transformExpr(pr,m,p))(s.info)}
+          case s@in.MagicWand(left,right)=>in.MagicWand(transformAssertion(left,m,p),transformAssertion(right,m,p))(s.info)
           case _=> s
           }}
 
