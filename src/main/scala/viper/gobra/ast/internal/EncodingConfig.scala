@@ -17,16 +17,7 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 
 class EncodingConfig (val slices:Integer= 0) {
-val sliceEncodings = Vector(0,1)
-
 def config (): String = {
-    ("$"+slices)
-}
-
-
-
-
-
-
-}
+    ("$"+slices )
+}}
 

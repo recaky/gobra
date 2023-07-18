@@ -7,5 +7,5 @@ pure func test()(res int){
     return 3
 }
 
-ensures forall i int :: i==3 ==> (i == test())
+ensures forall i int  :: {test()} i==3 ==> (i == test())
 func client(){}
