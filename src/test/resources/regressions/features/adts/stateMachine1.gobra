@@ -54,7 +54,7 @@ pure func busSigToAdt(i int) BusSignal {
     return (match i {
         case -1: NoSig{}
         case 0: BusRd{}
-        case 1: BusRdX{}
+        case (neviem()): BusRdX{}
         case 2: BusUpgr{}
     })
 }
@@ -187,3 +187,5 @@ func client() {
     assert (p1.stateOfMachine()).isInvalid && (p2.stateOfMachine()).isModified && flushed
 
 }
+
+pure func neviem () int {return 1}

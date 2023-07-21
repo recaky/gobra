@@ -374,7 +374,6 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
 
 
 
-          case in.FractionalPerm(left,right)=>{checkExpr(left,m,p);checkExpr(right,m,p); in.FractionalPerm(transformExpr(left,m,p),transformExpr(right,m,p))(s.info)}
 
           case in.Old(op,typ)=>checkExpr(op,m,p);in.Old(transformExpr(op,m,p),typ)(s.info)
           case in.LabeledOld(label, operand)=> checkExpr(operand,m,p); in.LabeledOld(label,transformExpr(operand,m,p))(s.info)
