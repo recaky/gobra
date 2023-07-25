@@ -15,6 +15,7 @@ type intPair domain {
     axiom {
       forall l, r int :: {pair(l,r)} l == fst(pair(l,r)) && r == snd(pair(l,r))
     }
+    
 }
 
 func test() {
@@ -26,3 +27,4 @@ func test2() {
     x@ := pair(1,2)
     assert fst(x) == 1
 }
+

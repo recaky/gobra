@@ -33,7 +33,15 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
   override def transform(p: in.Program): in.Program = p match {
     case in.Program(_, members, _) =>
 
-      def checkBody(m: in.Member): Unit = m match {
+      def traverseMember(m: in.Member): Unit = m match {
+        case m: in.DomainDefinition=> {
+          val number= random.nextInt(2);
+          val config = new EncodingConfig(number);
+          val domain = in.DomainDefinition(m.name, m.funcs,m.axioms, config)(m.info)
+           methodsToRemove += m; methodsToAdd += domain ;
+
+
+        }
         
         case m: in.Function =>{
           val number= random.nextInt(2);
@@ -140,7 +148,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
           case i => violation(s"l.op.info ($i) is expected to be a Single")
         }*/
 
-      members.foreach(checkBody)
+      members.foreach(traverseMember)
 
     in.Program(
       types = p.types,

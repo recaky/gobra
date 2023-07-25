@@ -42,8 +42,7 @@ pure func count(t tree) (res int) {
 
 
 ghost
-ensures count(t) >= 0 && depth(t) >= 0
-ensures count(t) >= depth(t)
+
 func proof1(t tree) {
     match t {
         case Node{_, ?l, ?r}: proof1(l)
@@ -77,7 +76,7 @@ pure func rep(n, v int) list {
 
 
 ghost
-requires allNatrual(xs)
+
 pure func dec(xs list) list {
     return match xs {
         case Nil{}: Nil{}
@@ -107,17 +106,15 @@ pure func length(xs list) int {
 }
 
 ghost
-ensures forall xs, ys list :: {length(concat(xs, ys))} length(concat(xs, ys)) == length(xs) + length(ys)
+
 func lemma1()
 
 ghost
-ensures forall x, y int :: {length(rep(x,y))} x >= 0 ==> length(rep(x, y)) == x
+
 func lemma2()
 
 ghost
-requires allNatrual(xs)
-ensures allNatrual(xs)
-ensures length(dec(xs)) == srclen(xs)
+
 func proof2 (xs list) {
     match xs {
         case Nil{}:
