@@ -221,7 +221,8 @@ case class MethodSubtypeProof(
                                receiver: Parameter.In,
                                args: Vector[Parameter.In],
                                results: Vector[Parameter.Out],
-                               body: Option[Block] // empty if it is generated
+                               body: Option[Block],
+                               val encodingConfig:EncodingConfig= new EncodingConfig// empty if it is generated
                              )(val info: Source.Parser.Info) extends Member
 
 case class PureMethodSubtypeProof(
@@ -231,7 +232,8 @@ case class PureMethodSubtypeProof(
                                receiver: Parameter.In,
                                args: Vector[Parameter.In],
                                results: Vector[Parameter.Out],
-                               body: Option[Expr] // empty if it is generated
+                               body: Option[Expr],
+                               val encodingConfig:EncodingConfig= new EncodingConfig// empty if it is generated
                              )(val info: Source.Parser.Info) extends Member {
   require(results.size <= 1)
 }

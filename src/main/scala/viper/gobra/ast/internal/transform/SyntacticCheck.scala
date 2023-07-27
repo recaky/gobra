@@ -7,10 +7,9 @@
 package viper.gobra.ast.internal.transform
 
 import viper.gobra.ast.{internal => in}
-import viper.gobra.reporting.Source
-//import viper.gobra.reporting.Source.SlicingExpressionAnnotation
-import viper.gobra.reporting.Source.Parser.Single
-import viper.gobra.util.Violation.violation
+
+
+
 import scala.util.Random
 import viper.gobra.ast.internal.EncodingConfig
 
@@ -113,6 +112,17 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
         
         }
 
+        case m:in.MethodSubtypeProof=> {
+          val number= random.nextInt(2);
+          val config= new EncodingConfig(number);
+          val meth= in.MethodSubtypeProof (m.subProxy,m.superT,m.superProxy, m.receiver, m.args, m.results, m.body,config)(m.info);
+          methodsToRemove += m; methodsToAdd += meth; 
+}
+       case m:in.PureMethodSubtypeProof=> {
+          val number= random.nextInt(2);
+          val config= new EncodingConfig(number);
+          val meth= in.PureMethodSubtypeProof (m.subProxy,m.superT,m.superProxy, m.receiver, m.args, m.results, m.body,config)(m.info)
+        methodsToRemove += m; methodsToAdd += meth; }
 
        
         case _ =>
