@@ -123,6 +123,17 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
                methodsToAdd+= newMember;
                 methodsToRemove+= m;
                 println(newMember);}
+          case m: in.PureMethodSubtypeProof => {
+              val member = m.asInstanceOf[in.PureMethodSubtypeProof];
+              val proxy = in.MethodProxy(member.subProxy.name + member.encodingConfig.config(), member.subProxy.uniqueName + member.encodingConfig.config())(member.subProxy.info)
+              println("proxy=" + proxy)
+              val body = member.body match { case Some(block)=> checkExpr(block, member.encodingConfig, p); Some(transformExpr(block, member.encodingConfig,p)) case None=> None}
+              val proxy2 = in.MethodProxy(member.superProxy.name + member.encodingConfig.config() , member.superProxy.uniqueName + member.encodingConfig.config() )(member.superProxy.info)
+              println("proxy2=" + proxy2)
+              val newMember= in.PureMethodSubtypeProof(proxy, member.superT, proxy2, member.receiver, member.args, member.results, body, member.encodingConfig)(member.info)
+               methodsToAdd+= newMember;
+                methodsToRemove+= m;
+                println(newMember);}
         
                 
                 
