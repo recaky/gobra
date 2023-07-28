@@ -28,7 +28,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
   override def transform(p: in.Program): in.Program = p match {
     case in.Program(_, members, _) =>
 
-      def traverseMember(m: in.Member): Unit = {var builtin= false; println(m.getClass); m match {
+      def traverseMember(m: in.Member): Unit = {var builtin= false; println (m);println( m.getClass); m match {
         case m:in.DomainDefinition=>{
           val member=m.asInstanceOf[in.DomainDefinition];
             val newMember = in.DomainDefinition(member.name, member.funcs, member.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, member.encodingConfig,p);in.DomainAxiom(transformExpr(exp,member.encodingConfig,p))(a.info) case _=>a}))(member.info)
@@ -112,18 +112,18 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
                 definedFPredicatesDelta+= proxy->newMember
               
                   }
-       /* case m: in.MethodSubtypeProof => {
+       case m: in.MethodSubtypeProof => {
               val member = m.asInstanceOf[in.MethodSubtypeProof];
               val proxy = in.MethodProxy(member.subProxy.name + member.encodingConfig.config(), member.subProxy.uniqueName + member.encodingConfig.config())(member.subProxy.info)
-              val body = member.body match {case None=> None case Some(block)=> checkStmt(block.asInstanceOf[in.Stmt], member.encodingConfig, p); Some(transformStmt(block.asInstanceOf[in.Stmt], member.encodingConfig,p).asInstanceOf[in.Block])}
-              val proxy2 = in.MethodProxy(member.superProxy.name + member.encodingConfig.config(), member.superProxy.uniqueName + member.encodingConfig.config())(member.superProxy.info)
+              println("proxy=" + proxy)
+              val body = member.body match { case Some(block)=> checkStmt(block.asInstanceOf[in.Stmt], member.encodingConfig, p); Some(transformStmt(block.asInstanceOf[in.Stmt], member.encodingConfig,p).asInstanceOf[in.Block]) case None=> None}
+              val proxy2 = in.MethodProxy(member.superProxy.name + member.encodingConfig.config() , member.superProxy.uniqueName + member.encodingConfig.config() )(member.superProxy.info)
+              println("proxy2=" + proxy2)
               val newMember= in.MethodSubtypeProof(proxy, member.superT, proxy2, member.receiver, member.args, member.results, body, member.encodingConfig)(member.info)
                methodsToAdd+= newMember;
                 methodsToRemove+= m;
-
-
-
-        }*/
+                println(newMember);}
+        
                 
                 
           case _=>   
@@ -131,7 +131,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
                 
           }
                 
-
+        
       
       
       
@@ -169,8 +169,6 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
             else {
              
               val function= (p.table.lookup(s.func)).asInstanceOf[in.PureFunction]
-              
-              
               val newMember= in.PureFunction(nameoffunction, function.args, function.results, function.pres, function.posts, function.terminationMeasures, None,m)(function.info);
               definedFunctionsDelta+= nameoffunction->newMember;
               val pres= function.pres.map(a=> transformAssertion(a,m,p))
@@ -187,7 +185,6 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
             else {
              
               val function= (p.table.lookup(s.func)).asInstanceOf[in.Function]
-             
               val newMember= in.Function(nameoffunction, function.args, function.results, function.pres, function.posts, function.terminationMeasures, None,m)(function.info);
               definedFunctionsDelta+= nameoffunction->newMember;
               val pres= function.pres.map(a=> transformAssertion(a,m,p))
@@ -200,7 +197,8 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
                 
       case s: in.MethodCall => {
         val met=p.table.lookup(s.meth)
-        if (met.isInstanceOf[in.BuiltInMethod]) {}
+        
+       if (met.isInstanceOf[in.BuiltInMethod]) {}
         else {
             val nameofmethod = in.MethodProxy(s.meth.name + m.config(), s.meth.uniqueName + m.config())(s.meth.info)
               if ( definedMethodsDelta.contains(nameofmethod) || p.table.lookup(s.meth).asInstanceOf[in.Method].encodingConfig.config()==m.config()) {}
@@ -213,10 +211,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
               val posts= method.posts.map(a=> transformAssertion(a,m,p))
               val tm= method.terminationMeasures.map(a=>handleTM(a,m,p))
               val newMember2= in.Method(method.receiver, nameofmethod, method.args, method.results, pres,posts , tm, None,m)(method.info);
-
-             
-               
-                methodsToAdd+= newMember2; definedMethodsDelta+= nameofmethod->newMember2;
+              methodsToAdd+= newMember2; definedMethodsDelta+= nameofmethod->newMember2;
                 }}}
       case s: in.GoMethodCall => {
         val met=p.table.lookup(s.meth)
@@ -583,8 +578,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
               val posts= function.posts.map(a=> transformAssertion(a,m,p))
               val tm= function.terminationMeasures.map(a=>handleTM(a,m,p))
               val newMember2= in.PureFunction(nameoffunction, function.args, function.results, pres, posts, tm, computeNewExprBody(function.body,m,p),m)(function.info);
-                
-                methodsToAdd+= newMember2; definedFunctionsDelta+= nameoffunction->newMember2;
+              methodsToAdd+= newMember2; definedFunctionsDelta+= nameoffunction->newMember2;
                 }}
 
           case s: in.PureMethodCall => {
@@ -600,10 +594,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
               val posts= method.posts.map(a=> transformAssertion(a,m,p))
               val tm= method.terminationMeasures.map(a=>handleTM(a,m,p))
               val newMember2 = in.PureMethod(method.receiver, nameofmethod, method.args, method.results, pres, posts,tm,  computeNewExprBody(method.body,m,p),m)(method.info);
-
-             
-               
-                methodsToAdd+= newMember2; definedMethodsDelta+= nameofmethod->newMember2;
+              methodsToAdd+= newMember2; definedMethodsDelta+= nameofmethod->newMember2;
                 }}
       
           case _=>
