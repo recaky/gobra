@@ -1,20 +1,11 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
-//
-// Copyright (c) 2011-2021 ETH Zurich.
+
 
 package viper.gobra.ast.internal.transform
 
 import viper.gobra.ast.{internal => in}
 
-
 import viper.gobra.ast.internal.EncodingConfig
 
-/**
-  * Transformation responsible for generating call-graph edges from interface methods to their implementations' methods.
-  * This is necessary to soundly verify termination in the presence of dynamic method binding.
-  */
 object SyntacticCheck2 extends InternalTransform {
   override def name(): String = "syntactic_check_for_interface"
   var methodsToAdd: Set[in.Member] = Set.empty
@@ -117,9 +108,11 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
               val proxy = in.MethodProxy(member.subProxy.name + member.encodingConfig.config(), member.subProxy.uniqueName + member.encodingConfig.config())(member.subProxy.info)
               println("proxy=" + proxy)
               val body = member.body match { case Some(block)=> checkStmt(block.asInstanceOf[in.Stmt], member.encodingConfig, p); Some(transformStmt(block.asInstanceOf[in.Stmt], member.encodingConfig,p).asInstanceOf[in.Block]) case None=> None}
+              val superT= in.InterfaceT(member.superT.name + member.encodingConfig.config(),member.superT.addressability )
               val proxy2 = in.MethodProxy(member.superProxy.name + member.encodingConfig.config() , member.superProxy.uniqueName + member.encodingConfig.config() )(member.superProxy.info)
               println("proxy2=" + proxy2)
-              val newMember= in.MethodSubtypeProof(proxy, member.superT, proxy2, member.receiver, member.args, member.results, body, member.encodingConfig)(member.info)
+              println(superT);
+              val newMember= in.MethodSubtypeProof(member.subProxy, member.superT, member.superProxy, member.receiver, member.args, member.results, body, member.encodingConfig)(member.info)
                methodsToAdd+= newMember;
                 methodsToRemove+= m;
                 println(newMember);}
@@ -128,9 +121,11 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
               val proxy = in.MethodProxy(member.subProxy.name + member.encodingConfig.config(), member.subProxy.uniqueName + member.encodingConfig.config())(member.subProxy.info)
               println("proxy=" + proxy)
               val body = member.body match { case Some(block)=> checkExpr(block, member.encodingConfig, p); Some(transformExpr(block, member.encodingConfig,p)) case None=> None}
+              val superT= in.InterfaceT(member.superT.name + member.encodingConfig.config(),member.superT.addressability )
               val proxy2 = in.MethodProxy(member.superProxy.name + member.encodingConfig.config() , member.superProxy.uniqueName + member.encodingConfig.config() )(member.superProxy.info)
               println("proxy2=" + proxy2)
-              val newMember= in.PureMethodSubtypeProof(proxy, member.superT, proxy2, member.receiver, member.args, member.results, body, member.encodingConfig)(member.info)
+
+              val newMember= in.PureMethodSubtypeProof(member.subProxy, member.superT, member.superProxy, member.receiver, member.args, member.results, body, member.encodingConfig)(member.info)
                methodsToAdd+= newMember;
                 methodsToRemove+= m;
                 println(newMember);}
@@ -451,9 +446,6 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
           case s@in.Tuple(args)=> args.map(a=> checkExpr(a,m,p)); in.Tuple(args.map(a=> transformExpr(a,m,p)))(s.info)
           case s@in.PatternMatchExp(exp,typ, cases, default)=> checkExpr(exp,m,p); in.PatternMatchExp(transformExpr(exp,m,p),typ, cases.map(a=> a match{ case f@in.PatternMatchCaseExp(mExp,exp)=> {checkExpr(exp,m,p); in.PatternMatchCaseExp(handleMPattern(mExp,m,p),transformExpr(exp,m,p))(f.info)} 
                                                                                                                                            case _=>a} ),default match {case Some(exp)=> {checkExpr(exp,m,p); Some(transformExpr(exp,m,p))}case None=>None})(s.info)                                                                                                                                                                             
-
-
-
           case s@in.StructLit(typ,args)=>args.map(a=> checkExpr(a,m,p)); in.StructLit(typ,args.map(a=> transformExpr(a,m,p)))(s.info)
           
           case s@in.ArrayLit(length,mem,elems)=>in.ArrayLit(length,mem,elems.view.mapValues(a=>{checkExpr(a,m,p);transformExpr(a,m,p)}).toMap)(s.info)
