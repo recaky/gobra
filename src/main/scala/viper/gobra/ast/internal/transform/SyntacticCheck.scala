@@ -36,7 +36,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
         case m: in.DomainDefinition=> {
           val number= random.nextInt(2);
           val config = new EncodingConfig(number);
-          val domain = in.DomainDefinition(m.name, m.funcs,m.axioms, config)(m.info)
+          val domain = in.DomainDefinition(m.name, m.funcs,m.axioms, Vector(config))(m.info)
            methodsToRemove += m; methodsToAdd += domain ;
 
 

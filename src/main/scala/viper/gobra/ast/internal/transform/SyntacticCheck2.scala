@@ -14,17 +14,28 @@ object SyntacticCheck2 extends InternalTransform {
    var definedMethodsDelta: Map [in.MethodProxy, in.MethodLikeMember]= Map.empty
    var definedMPredicatesDelta: Map[in.MPredicateProxy, in.MPredicateLikeMember]= Map.empty
 var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = Map.empty
+var definedDomains: Map [String,in.DomainDefinition] = Map.empty
+
    
- 
+
   override def transform(p: in.Program): in.Program = p match {
     case in.Program(_, members, _) =>
+    
 
-      def traverseMember(m: in.Member): Unit = {var builtin= false; println (m);println( m.getClass); m match {
-        case m:in.DomainDefinition=>{
+
+     
+
+
+      def traverseMember(m: in.Member): Unit = {  println(m);m match {
+        
+        
+        
+       case m:in.DomainDefinition=>{
           val member=m.asInstanceOf[in.DomainDefinition];
-            val newMember = in.DomainDefinition(member.name, member.funcs, member.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, member.encodingConfig,p);in.DomainAxiom(transformExpr(exp,member.encodingConfig,p))(a.info) case _=>a}))(member.info)
+            val newMember = in.DomainDefinition(member.name , member.funcs.map(a=> transformDomainFunc(a,member.encodingConfig(0))), member.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, member.encodingConfig(0),p);in.DomainAxiom(transformExpr(exp,member.encodingConfig(0),p))(a.info) case _=>a}), member.encodingConfig)(member.info)
             methodsToAdd+= newMember;
                 methodsToRemove+= m;
+                 
 
         }
          case m: in.Method => {
@@ -103,7 +114,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
                 definedFPredicatesDelta+= proxy->newMember
               
                   }
-       case m: in.MethodSubtypeProof => {
+      /* case m: in.MethodSubtypeProof => {
               val member = m.asInstanceOf[in.MethodSubtypeProof];
               val proxy = in.MethodProxy(member.subProxy.name + member.encodingConfig.config(), member.subProxy.uniqueName + member.encodingConfig.config())(member.subProxy.info)
               println("proxy=" + proxy)
@@ -128,7 +139,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
               val newMember= in.PureMethodSubtypeProof(member.subProxy, member.superT, member.superProxy, member.receiver, member.args, member.results, body, member.encodingConfig)(member.info)
                methodsToAdd+= newMember;
                 methodsToRemove+= m;
-                println(newMember);}
+                println(newMember);}*/
         
                 
                 
@@ -137,11 +148,13 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
                 
           }
                 
-        
+      
       
       
       
       }
+      def transformDomainFunc(f:in.DomainFunc, m:EncodingConfig):in.DomainFunc={
+        in.DomainFunc(in.DomainFuncProxy(f.name.name + m.config(), f.name.domainName + m.config())(f.name.info),f.args,f.results)(f.info)}
 
      def checkStmt(s: in.Stmt, m:EncodingConfig, p: in.Program): Unit = {s match {
       case s: in.FunctionCall => {
@@ -150,6 +163,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
           else {
           val nameoffunction = in.FunctionProxy(s.func.name + m.config())(s.func.info)
             if ( definedFunctionsDelta.contains(nameoffunction) || p.table.lookup(s.func).asInstanceOf[in.Function].encodingConfig.config()==m.config()) {}
+            
             else {
               
               val function= p.table.lookup(s.func).asInstanceOf[in.Function]
@@ -365,7 +379,69 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
      case s@in.TupleTerminationMeasure(tuple,cond)=>in.TupleTerminationMeasure((tuple.map(node=>(if (node.isInstanceOf[in.Expr]){checkExpr(node.asInstanceOf[in.Expr],m,p);transformExpr(node.asInstanceOf[in.Expr],m,p)}else {checkPredAccess(node.asInstanceOf[in.PredicateAccess],m,p);transformPredAccess(node.asInstanceOf[in.PredicateAccess],m,p)}))),cond match {case Some(exp)=>checkExpr(exp,m,p); Some(transformExpr(exp,m,p))case None=> None})(s.info)
       case _=>s
 }
+
+
+
+
+        def lookupDomain(members: Vector[in.Member],domainName:String): in.DomainDefinition= {
+          var domain= in.DomainDefinition("abc", Vector.empty, Vector.empty)(members(0).info)
+
+          members.map (a=> if (a.isInstanceOf[in.DomainDefinition]&& a.asInstanceOf[in.DomainDefinition].name==domainName){domain= a.asInstanceOf[in.DomainDefinition]})
+          domain
+         
+
+
+        }
+
+
+          def configcheck(domain:in.DomainDefinition,m:EncodingConfig):Boolean={
+             domain.encodingConfig.foldLeft(false)((acc,config ) => {
+                acc || config.config()==m.config})}
+
+
         def transformExpr(s:in.Expr, m:EncodingConfig,p:in.Program):in.Expr= {s match {
+          case s@in.DomainFunctionCall(func,args,typ)=>{
+           
+           
+            if (definedDomains.contains(func.domainName)&&configcheck(definedDomains(func.domainName),m)){}
+            
+            
+            else if(configcheck(lookupDomain(p.members,func.domainName),m))  {}
+            
+            else {
+              if (definedDomains.isEmpty) {val domain= lookupDomain(p.members,func.domainName);
+              val newMember= in.DomainDefinition(domain.name ,domain.funcs,  domain.axioms,domain.encodingConfig ++ Vector(m) )(domain.info)
+              definedDomains+= newMember.name->newMember
+
+
+
+              val newMember2= in.DomainDefinition(domain.name ,domain.funcs.map(a=> transformDomainFunc(a,domain.encodingConfig(0))) ++ domain.funcs.map(a=> transformDomainFunc(a,m)), domain.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, domain.encodingConfig(0),p);in.DomainAxiom(transformExpr(exp,domain.encodingConfig(0),p))(a.info) case _=>a})
+               ++ domain.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, m,p);in.DomainAxiom(transformExpr(exp,m,p))(a.info) case _=>a}), domain.encodingConfig ++ Vector(m))(domain.info)
+
+
+              methodsToAdd+=newMember2
+              methodsToRemove+=domain
+              definedDomains+= newMember.name->newMember2
+
+
+
+
+              }
+              else {val domain= definedDomains(func.domainName)
+              
+              val newMember= in.DomainDefinition(domain.name ,domain.funcs,  domain.axioms,domain.encodingConfig ++ Vector(m) )(domain.info)
+              definedDomains+= newMember.name->newMember
+
+
+
+              val newMember2= in.DomainDefinition(domain.name ,domain.funcs ++ domain.funcs.map(a=> transformDomainFunc(a,m)), domain.axioms ++ domain.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, m,p);in.DomainAxiom(transformExpr(exp,m,p))(a.info) case _=>a}),domain.encodingConfig ++ Vector(m) )(domain.info)
+
+
+              methodsToAdd+=newMember2
+              methodsToRemove+=domain
+              definedDomains+= newMember.name->newMember2}}
+            
+            val nameoffunction = in.DomainFuncProxy(func.name + m.config() , func.domainName )(func.info);in.DomainFunctionCall (nameoffunction,args.map(a=> {checkExpr(a,m,p);transformExpr(a,m,p)}),typ)(s.info);}
           case s@in.SequenceLit(length,mem,elems)=> in.SequenceLit(length,mem,elems.view.mapValues(a=> {checkExpr(a,m,p);transformExpr(a,m,p)}).toMap)(s.info)
           case s@in.Let(left,right,ind)=> checkExpr(right,m,p);checkExpr(ind,m,p);in.Let(left,transformExpr(right,m,p),transformExpr(ind,m,p))(s.info)  
           case s@in.PureFunctionCall(func,args,typ) => {val nameoffunction = in.FunctionProxy(func.name + m.config())(func.info); in.PureFunctionCall (nameoffunction,args.map(a=> {checkExpr(a,m,p);transformExpr(a,m,p)}),typ)(s.info);}
@@ -623,6 +699,10 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
     case None=>None}}
       
 
+
+
+
+      
       members.foreach(traverseMember);
   
     in.Program(

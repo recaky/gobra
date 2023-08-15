@@ -317,7 +317,7 @@ case class BuiltInMPredicate(
   require(argsT.forall(_.addressability == Addressability.Exclusive))
 }
 
-case class DomainDefinition(name: String, funcs: Vector[DomainFunc], axioms: Vector[DomainAxiom],val encodingConfig:EncodingConfig= new EncodingConfig )(val info: Source.Parser.Info) extends Member
+case class DomainDefinition(name: String, funcs: Vector[DomainFunc], axioms: Vector[DomainAxiom],val encodingConfig:Vector[EncodingConfig]= Vector(new EncodingConfig) )(val info: Source.Parser.Info) extends Member
 case class DomainAxiom(expr: Expr)(val info: Source.Parser.Info) extends Node
 case class DomainFunc(
                        name: DomainFuncProxy,
