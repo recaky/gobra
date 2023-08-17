@@ -33,14 +33,14 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
     case in.Program(_, members, _) =>
 
       def traverseMember(m: in.Member): Unit = m match {
-        case m: in.DomainDefinition=> {
+       /*case m: in.DomainDefinition=> {
           val number= random.nextInt(2);
           val config = new EncodingConfig(number);
           val domain = in.DomainDefinition(m.name, m.funcs,m.axioms, Vector(config))(m.info)
            methodsToRemove += m; methodsToAdd += domain ;
 
 
-        }
+        }*/
         
         case m: in.Function =>{
           val number= random.nextInt(2);

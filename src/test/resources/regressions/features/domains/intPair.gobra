@@ -28,3 +28,28 @@ func test2() {
     assert fst(x) == 1
 }
 
+type ejha domain {
+    func noco(ejha) int
+    func toto(ejha) int
+    func tamto(int, int) ejha
+
+    axiom {
+      forall p ejha :: {noco(p)}{toto(p)} p == tamto(noco(p),toto(p))
+    } // pair
+
+    axiom {
+      forall l, r int :: {tamto(l,r)} l == noco(tamto(l,r)) && r == toto(tamto(l,r))
+    }
+    
+}
+
+
+func testik() {
+    x := tamto(1,2)
+    assert noco(x) == 1
+}
+
+func testik2() {
+    x@ := tamto(1,2)
+    assert noco(x) == 1
+}

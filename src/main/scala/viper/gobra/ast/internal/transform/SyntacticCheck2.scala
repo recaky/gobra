@@ -14,7 +14,10 @@ object SyntacticCheck2 extends InternalTransform {
    var definedMethodsDelta: Map [in.MethodProxy, in.MethodLikeMember]= Map.empty
    var definedMPredicatesDelta: Map[in.MPredicateProxy, in.MPredicateLikeMember]= Map.empty
 var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = Map.empty
-var definedDomains: Map [String,in.DomainDefinition] = Map.empty
+var definedDomains: Map [String,in.Member] = Map.empty
+var baseDomains: Map [String,in.DomainDefinition] = Map.empty
+var check:Boolean = false
+
 
    
 
@@ -30,14 +33,15 @@ var definedDomains: Map [String,in.DomainDefinition] = Map.empty
         
         
         
-       case m:in.DomainDefinition=>{
+      /* case m:in.DomainDefinition=>{
           val member=m.asInstanceOf[in.DomainDefinition];
             val newMember = in.DomainDefinition(member.name , member.funcs.map(a=> transformDomainFunc(a,member.encodingConfig(0))), member.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, member.encodingConfig(0),p);in.DomainAxiom(transformExpr(exp,member.encodingConfig(0),p))(a.info) case _=>a}), member.encodingConfig)(member.info)
             methodsToAdd+= newMember;
-                methodsToRemove+= m;
+           
+            methodsToRemove+= m;
                  
 
-        }
+        }*/
          case m: in.Method => {
                 val member=m.asInstanceOf[in.Method];
                 val proxy= in.MethodProxy(member.name.name + member.encodingConfig.config(), member.name.uniqueName + member.encodingConfig.config())(member.name.info)
@@ -385,7 +389,7 @@ var definedDomains: Map [String,in.DomainDefinition] = Map.empty
 
         def lookupDomain(members: Vector[in.Member],domainName:String): in.DomainDefinition= {
           var domain= in.DomainDefinition("abc", Vector.empty, Vector.empty)(members(0).info)
-
+          
           members.map (a=> if (a.isInstanceOf[in.DomainDefinition]&& a.asInstanceOf[in.DomainDefinition].name==domainName){domain= a.asInstanceOf[in.DomainDefinition]})
           domain
          
@@ -403,42 +407,42 @@ var definedDomains: Map [String,in.DomainDefinition] = Map.empty
           case s@in.DomainFunctionCall(func,args,typ)=>{
            
            
-            if (definedDomains.contains(func.domainName)&&configcheck(definedDomains(func.domainName),m)){}
-            
-            
-            else if(configcheck(lookupDomain(p.members,func.domainName),m))  {}
-            
-            else {
-              if (definedDomains.isEmpty) {val domain= lookupDomain(p.members,func.domainName);
-              val newMember= in.DomainDefinition(domain.name ,domain.funcs,  domain.axioms,domain.encodingConfig ++ Vector(m) )(domain.info)
+            if (definedDomains.contains(func.domainName)&&configcheck(definedDomains(func.domainName).asInstanceOf[in.DomainDefinition],m)){}
+             else {
+              if (!definedDomains.contains(func.domainName)) {val domain= lookupDomain(p.members,func.domainName);
+              baseDomains+= domain.name->domain
+              
+              val newMember= in.DomainDefinition(domain.name ,domain.funcs,  domain.axioms,Vector(m) )(domain.info)
               definedDomains+= newMember.name->newMember
+              
 
 
 
-              val newMember2= in.DomainDefinition(domain.name ,domain.funcs.map(a=> transformDomainFunc(a,domain.encodingConfig(0))) ++ domain.funcs.map(a=> transformDomainFunc(a,m)), domain.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, domain.encodingConfig(0),p);in.DomainAxiom(transformExpr(exp,domain.encodingConfig(0),p))(a.info) case _=>a})
-               ++ domain.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, m,p);in.DomainAxiom(transformExpr(exp,m,p))(a.info) case _=>a}), domain.encodingConfig ++ Vector(m))(domain.info)
+              val newMember2= in.DomainDefinition(domain.name , domain.funcs.map(a=> transformDomainFunc(a,m)),  domain.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, m,p);in.DomainAxiom(transformExpr(exp,m,p))(a.info) case _=>a}),  Vector(m))(domain.info)
 
 
-              methodsToAdd+=newMember2
+              //methodsToAdd+=newMember2
               methodsToRemove+=domain
-              definedDomains+= newMember.name->newMember2
+              definedDomains+= newMember2.name->newMember2
 
 
 
 
               }
-              else {val domain= definedDomains(func.domainName)
-              
+              else {val domain= definedDomains(func.domainName).asInstanceOf[in.DomainDefinition]
+              val base= baseDomains(func.domainName)
+              //methodsToAdd.diff(Set(domain.asInstanceOf[in.Member]))
               val newMember= in.DomainDefinition(domain.name ,domain.funcs,  domain.axioms,domain.encodingConfig ++ Vector(m) )(domain.info)
               definedDomains+= newMember.name->newMember
 
 
 
-              val newMember2= in.DomainDefinition(domain.name ,domain.funcs ++ domain.funcs.map(a=> transformDomainFunc(a,m)), domain.axioms ++ domain.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, m,p);in.DomainAxiom(transformExpr(exp,m,p))(a.info) case _=>a}),domain.encodingConfig ++ Vector(m) )(domain.info)
+              val newMember2= in.DomainDefinition(domain.name ,domain.funcs ++ base.funcs.map(a=> transformDomainFunc(a,m)), domain.axioms ++ base.axioms.map(a=> a match{case in.DomainAxiom(exp)=> checkExpr(exp, m,p);in.DomainAxiom(transformExpr(exp,m,p))(a.info) case _=>a}),domain.encodingConfig ++ Vector(m) )(domain.info)
 
 
-              methodsToAdd+=newMember2
-              methodsToRemove+=domain
+             // methodsToAdd+=newMember2
+             
+          
               definedDomains+= newMember.name->newMember2}}
             
             val nameoffunction = in.DomainFuncProxy(func.name + m.config() , func.domainName )(func.info);in.DomainFunctionCall (nameoffunction,args.map(a=> {checkExpr(a,m,p);transformExpr(a,m,p)}),typ)(s.info);}
@@ -707,7 +711,7 @@ var definedDomains: Map [String,in.DomainDefinition] = Map.empty
   
     in.Program(
       types = p.types,
-      members = p.members.diff(methodsToRemove.toSeq).appendedAll(methodsToAdd),
+      members = p.members.diff(methodsToRemove.toSeq).appendedAll(methodsToAdd).appendedAll(definedDomains.values.toSet),
       table = p.table.merge(new in.LookupTable(definedMethods = definedMethodsDelta)).merge(new in.LookupTable(definedFunctions = definedFunctionsDelta)).merge(new in.LookupTable(definedMPredicates = definedMPredicatesDelta)).merge(new in.LookupTable(definedFPredicates = definedFPredicatesDelta)),
     )(p.info)
   }
