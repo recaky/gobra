@@ -21,21 +21,28 @@ type intPair domain {
 func test() {
     x := pair(1,2)
     assert fst(x) == 1
+    y := tamto(1,2)
+    assert noco(y) == 1
 }
 
 func test2() {
     x@ := pair(1,2)
     assert fst(x) == 1
+
 }
 
 type ejha domain {
     func noco(ejha) int
     func toto(ejha) int
     func tamto(int, int) ejha
+    
 
     axiom {
       forall p ejha :: {noco(p)}{toto(p)} p == tamto(noco(p),toto(p))
     } // pair
+   axiom {
+      forall l, r int :: {pair(l,r)} l == fst(pair(l,r)) && r == snd(pair(l,r))
+    }
 
     axiom {
       forall l, r int :: {tamto(l,r)} l == noco(tamto(l,r)) && r == toto(tamto(l,r))
