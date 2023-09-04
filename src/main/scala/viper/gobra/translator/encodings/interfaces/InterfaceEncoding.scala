@@ -20,7 +20,8 @@ import viper.gobra.translator.util.ViperWriter.CodeWriter
 import viper.gobra.util.{Algorithms, Violation}
 import viper.silver.plugin.standard.termination
 import viper.silver.verifier.ErrorReason
-import viper.silver.{ast => vpr}
+import viper.silver.{ast => vpr} 
+
 
 import scala.collection.SortedSet
 

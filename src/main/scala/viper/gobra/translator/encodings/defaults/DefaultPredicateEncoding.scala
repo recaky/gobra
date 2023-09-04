@@ -5,9 +5,9 @@
 // Copyright (c) 2011-2020 ETH Zurich.
 
 package viper.gobra.translator.encodings.defaults
-import viper.gobra.theory.Addressability
 
-import viper.gobra.theory.Addressability.{Exclusive, Shared}
+
+
 
 import org.bitbucket.inkytonik.kiama.==>
 import viper.gobra.ast.{internal => in}
@@ -105,11 +105,10 @@ class DefaultPredicateEncoding extends Encoding {
     case acc@ in.Access(in.Accessible.Predicate(op: in.MPredicateAccess), perm) =>
       
       val (pos, info, errT) = acc.vprMeta
-      val name=ctx.freshNames.next()
-        val typek = in.StructT(Vector.empty, Addressability.Exclusive)
+     
        
-        val x = in.LocalVar(name, typek)(op.info)
-        val  vX = ctx.variable(x)
+        
+        
       for {
         
         vRecv <- ctx.expression(op.recv)
