@@ -346,9 +346,9 @@ class StructEncoding extends TypeEncoding {
       val pre = synthesized(termination.DecreasesWildcard(None))("This function is assumed to terminate")
       val post = pure(sequence(fieldEq).map(VU.bigAnd(_)(vpr.NoPosition, vpr.NoInfo, vpr.NoTrafos)))(ctx).res
           .transform{ case x: vpr.LocalVar if x.name == resDummy.id => vpr.Result(vResType)() }
-          val domainName: String = s"ShStructOps"
+          
     val typeVars = Seq( vpr.TypeVar(s"T"))
-    val typeVarMap = (typeVars zip typeVars).toMap
+    
    
    
     
