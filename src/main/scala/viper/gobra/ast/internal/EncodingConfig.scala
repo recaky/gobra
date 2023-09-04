@@ -6,15 +6,9 @@
 
 package viper.gobra.ast.internal
 
-import viper.gobra.ast.internal.utility.Nodes
-import viper.gobra.reporting.Source
-import viper.silver.ast.utility.Visitor
-import viper.silver.ast.utility.rewriter.Traverse.Traverse
-import viper.silver.ast.utility.rewriter.{StrategyBuilder, Traverse}
-import viper.silver.{ast => vpr}
 
-import scala.collection.mutable
-import scala.reflect.ClassTag
+
+
 
 class EncodingConfig (val slices:Integer= 0) {
 def config (): String = {

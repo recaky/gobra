@@ -8,7 +8,7 @@ package viper.gobra.ast.internal
 
 import viper.gobra.ast.internal.utility.Nodes
 import viper.gobra.reporting.Source
-import viper.gobra.ast.internal.EncodingConfig
+
 import viper.silver.ast.utility.Visitor
 import viper.silver.ast.utility.rewriter.Traverse.Traverse
 import viper.silver.ast.utility.rewriter.{StrategyBuilder, Traverse}
@@ -26,12 +26,7 @@ trait Node extends Rewritable with Product {
    
    
    
-   
-   object Moje{
-    var slices: Integer = 0
-    def setslices(a:Integer):Unit={
-      this.slices= a
-}}
+
   
   def undefinedInfo: Boolean = info == Source.Parser.Unsourced
 

@@ -18,7 +18,7 @@ import viper.gobra.ast.internal.EncodingConfig
   * This is necessary to soundly verify termination in the presence of dynamic method binding.
   */
 object SyntacticCheck extends InternalTransform {
-  override def name(): String = "syntactic_check_for_slices"
+  override def name(): String = "syntactic_check_test"
    val random= new Random()
    var methodsToAdd: Set[in.Member] = Set.empty
   var methodsToRemove: Set[in.Member]= Set.empty
@@ -33,14 +33,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
     case in.Program(_, members, _) =>
 
       def traverseMember(m: in.Member): Unit = m match {
-       /*case m: in.DomainDefinition=> {
-          val number= random.nextInt(2);
-          val config = new EncodingConfig(number);
-          val domain = in.DomainDefinition(m.name, m.funcs,m.axioms, Vector(config))(m.info)
-           methodsToRemove += m; methodsToAdd += domain ;
-
-
-        }*/
+      
         
         case m: in.Function =>{
           val number= random.nextInt(2);
@@ -103,7 +96,7 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
         case m: in.FPredicate =>{
           val number= random.nextInt(2);
           val config= new EncodingConfig(number);
-          var predicate = in.FPredicate(m.name,m.args, m.body, config)(m.info);
+          val predicate = in.FPredicate(m.name,m.args, m.body, config)(m.info);
           
          
           methodsToRemove += m; methodsToAdd += predicate ; definedFPredicatesDelta+= predicate.name->predicate
@@ -128,35 +121,10 @@ var definedFPredicatesDelta: Map[in.FPredicateProxy, in.FPredicateLikeMember] = 
         case _ =>
       }
 
-      /*
-      Checks the expressions for subslicing expressions
-       */
-      def checkExpr(e: in.Expr): Boolean = {
-        var slice = false
-        e.visit {
-          case elem: in.Slice => slice = true
-          case _ =>
-        }
-        slice
-      }
      
-      /*
-      Checks the statements for subslicing expressions
-       */
-      def checkStmt(s: in.Stmt): Boolean = s match {
-        case s: in.If => checkExpr(s.cond) || checkStmt(s.thn) || checkStmt(s.els)
-        case s: in.While =>  checkExpr(s.cond) || checkStmt(s.body)
-        case s: in.SingleAss => checkExpr(s.right)
-        case s: in.FunctionCall => s.args.exists(e => checkExpr(e))
-        case s: in.MethodCall => s.args.exists(e => checkExpr(e))
-        case _ => false
-      }
+    
 
-     /* def createAnnotatedInfo(info: Source.Parser.Info): Source.Parser.Info =
-        info match {
-          case s: Single => s.createAnnotatedInfo(SlicingExpressionAnnotation)
-          case i => violation(s"l.op.info ($i) is expected to be a Single")
-        }*/
+     
 
       members.foreach(traverseMember)
 
