@@ -4,14 +4,11 @@
 //
 // Copyright (c) 2011-2020 ETH Zurich.
 package viper.gobra.translator.library.tuples
-import scala.language.postfixOps
 
-import viper.gobra.translator.Names
+
 import viper.silver.{ast => vpr}
-import viper.gobra.translator.util.ViperUtil.synthesized
 
-import scala.collection.mutable
-import viper.silver.plugin.standard.termination
+
 
 class TuplesImpl extends Tuples {
 
@@ -30,7 +27,7 @@ class TuplesImpl extends Tuples {
 
   override def create(args: Vector[vpr.Exp])(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
      if (_generatedDomains.size== 0) {addNTuplesDomain(0);}
-    val domainName= "Struct"
+    
     
     
     val arity = args.size
@@ -41,31 +38,31 @@ class TuplesImpl extends Tuples {
       funcname = "default_tuple",
       args = Seq(vpr.IntLit(0)()),
       typVarMap = Map(vpr.TypeVar("T")->domainType)
-    )(vpr.NoPosition,vpr.NoInfo, domainType, s"StructOps",vpr.NoTrafos)}
+    )(pos,info, domainType, s"StructOps",errT)}
 
 
     else helper(args, args.size)(pos,info,errT)
   }
   def helper (args: Vector[vpr.Exp], fields:Int)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo): vpr.DomainFuncApp = {
-    val domainName= "Struct"
+    
     
     
     val arity = args.size
     val index = arity - 1
-    val value = if (!args.isEmpty) {args(index)}
+    
     val indexik = index 
     
       if (arity==1) { vpr.DomainFuncApp(
       funcname = "struct_settup",
       args = Seq(vpr.DomainFuncApp("default_tuple",Seq(vpr.IntLit(fields)()),Map(vpr.TypeVar("T")->args(index).typ))(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos),vpr.IntLit(indexik)(),args(index)),
       typVarMap = Map(vpr.TypeVar("T")->args(index).typ)
-    )(vpr.NoPosition,vpr.NoInfo,domainType, s"StructOps",vpr.NoTrafos)}
+    )(pos,info,domainType, s"StructOps",errT)}
  
     else vpr.DomainFuncApp(
       funcname = "struct_settup",
       args = Seq(helper(args.dropRight(1),fields)(vpr.NoPosition,vpr.NoInfo,vpr.NoTrafos),vpr.IntLit(indexik)(),args(index)),
       typVarMap = Map(vpr.TypeVar("T")->args(index).typ)
-    )(vpr.NoPosition,vpr.NoInfo, domainType, s"StructOps",vpr.NoTrafos)
+    )(pos,info, domainType, s"StructOps",errT)
 
 
 

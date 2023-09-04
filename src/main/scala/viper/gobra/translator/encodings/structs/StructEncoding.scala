@@ -49,7 +49,7 @@ class StructEncoding extends TypeEncoding {
   }
 
   private val sh: SharedStructComponent = new SharedStructComponentImpl
-  private val sh2: SharedStructComponent = new SharedStructComponentImpl
+  
 
   override def finalize(addMemberFn: vpr.Member => Unit): Unit = {
      
@@ -349,7 +349,7 @@ class StructEncoding extends TypeEncoding {
           val domainName: String = s"ShStructOps"
     val typeVars = Seq( vpr.TypeVar(s"T"))
     val typeVarMap = (typeVars zip typeVars).toMap
-    val domainType = vpr.DomainType(domainName = domainName, partialTypVarsMap = typeVarMap)(typeVars)
+   
    
     
   
@@ -367,32 +367,7 @@ class StructEncoding extends TypeEncoding {
    
       fun
     }
-    /*def helper (fs:Vector[in.Field])(ctx:Context): vpr.Exp=
-     val resType = in.StructT(fs, Shared)
-      val vResType = typ(ctx)(resType)
-    {
-      if (fs.length==1) {}
-      else {
-      vpr.And(helper(fs.dropRight(1))(ctx),vpr.EqCmp(vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(vpr.Result(vResType)(),vpr.LocalVarDecl("location", vpr.Int)().localVar), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStruct",vpr.NoTrafos )), Map.empty)(vpr.NoPosition,vpr.NoInfo,vpr.Ref, s"ShStructOps",vpr.NoTrafos ),
-         )())()}
-         
-         vpr.Forall(Seq(vpr.LocalVarDecl("location", vpr.Int)()),Nil,
-        vpr.Implies(
-          vpr.And(vpr.GeCmp(
-            vpr.LocalVarDecl("location", vpr.Int)().localVar,vpr.IntLit(0)())(),
-        vpr.LtCmp(vpr.LocalVarDecl("location", vpr.Int)().localVar,vpr.DomainFuncApp(s"struct_length", Seq(vpr.Result(vResType)()), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStructOps",vpr.NoTrafos ))())(),
-        vpr.And(vpr.EqCmp(vpr.LocalVarDecl("length", vpr.Int)().localVar,vpr.DomainFuncApp(s"struct_length", Seq(vpr.Result(vResType)()), typeVarMap)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStructOps",vpr.NoTrafos ))(),vpr.EqCmp(
-          vpr.DomainFuncApp(s"struct_get", Seq(vpr.DomainFuncApp(s"shstruct_loc", Seq(vpr.Result(vResType)(),vpr.LocalVarDecl("location", vpr.Int)().localVar), Map.empty)(vpr.NoPosition,vpr.NoInfo, vpr.Int, s"ShStruct",vpr.NoTrafos )), typeVarMap)(vpr.NoPosition,vpr.NoInfo,vpr.Ref, s"ShStructOps",vpr.NoTrafos )
-          ,vpr.NullLit()())())())())()
-         
-         
-         
-        
-
-
-
-
-    } */
+  
   }
 
    
