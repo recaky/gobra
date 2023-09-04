@@ -58,13 +58,13 @@ class SharedStructComponentImpl extends SharedStructComponent {
     val x = xDecl.localVar
     val yDecl = vpr.LocalVarDecl("y", domainType)()
     val y = yDecl.localVar
-    val vsDecl = (0 until arity) map (i => vpr.LocalVarDecl(s"v$i", typeVars(i))())
+    
 
     val getFuncs = (0 until arity) map (i => vpr.DomainFunc(s"${Names.sharedStructDomain}get${i}of$arity", Seq(xDecl), typeVars(i))(domainName = domainName))
-    val getApps = getFuncs map (f => vpr.DomainFuncApp(func = f, Seq(x), typeVarMap)())
-    val getAppTriggers = getApps map (g => vpr.Trigger(Seq(g))())
+  
+    
 
-    val revFuncs = (0 until arity) map (i => vpr.DomainFunc(s"${Names.sharedStructDomain}rev${i}of$arity", Seq(vsDecl(i)), domainType)(domainName = domainName))
+   
 
     val eqApp = ctx.equality.eq(x, y)()
     val eqAppTrigger = vpr.Trigger(Seq(eqApp))()
@@ -87,20 +87,7 @@ class SharedStructComponentImpl extends SharedStructComponent {
       )(domainName = domainName)
     }
 
-    val injective = {
-      (0 until arity) map { i =>
-        vpr.AnonymousDomainAxiom(
-          vpr.Forall(
-            Seq(xDecl),
-            Seq(getAppTriggers(i)),
-            vpr.EqCmp(
-              vpr.DomainFuncApp(func = revFuncs(i), Seq(getApps(i)), typeVarMap)(),
-              x
-            )()
-          )()
-        )(domainName = domainName)
-      }
-    }
+  
 
     val domain = vpr.Domain(
       name = domainName,
