@@ -46,10 +46,10 @@ trait SharedStructComponent extends Generator {
        
         val xa = in.LocalVar(name, typek)(loc.info)
         val  vX = ctx.variable(xa)
-        val arg = Vector(xa)
+        
         
         val vti = cptParam(fs)(ctx)
-         val ydecl = vpr.LocalVarDecl(name,vpr.TypeVar("Struct"))().localVar
+         
         
         pure(
           for {

@@ -18,13 +18,13 @@ class InterfaceComponentImpl extends InterfaceComponent{
     ctx.tuple.create(Vector(polyVal, dynType))(pos, info, errT)
 
   def dynTypeOf(itf: vpr.Exp)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo)(ctx: Context): vpr.Exp =
-  {val nothing = itf.typ
+  {
   ctx.tuple.flag=flag;
 
     ctx.tuple.get(itf, 1, 2)(pos, info, errT)}
 
   def polyValOf(itf: vpr.Exp)(pos: vpr.Position, info: vpr.Info, errT: vpr.ErrorTrafo)(ctx: Context): vpr.Exp =
-    {val nothing= itf.typ
+    {
     ctx.tuple.flag= flag;
    
     ctx.tuple.get(itf, 0, 2)(pos, info, errT)}

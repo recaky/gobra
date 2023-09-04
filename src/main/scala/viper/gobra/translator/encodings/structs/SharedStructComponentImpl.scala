@@ -9,7 +9,7 @@ package viper.gobra.translator.encodings.structs
 import viper.gobra.ast.{internal => in}
 import viper.silver.{ast => vpr}
 import StructEncoding.ComponentParameter
-import viper.gobra.translator.Names
+
 import viper.gobra.translator.context.Context
 
 
