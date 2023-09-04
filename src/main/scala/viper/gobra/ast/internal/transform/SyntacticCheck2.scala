@@ -23,7 +23,7 @@ var baseDomains: Map [String,in.DomainDefinition] = Map.empty
 
   override def transform(p: in.Program): in.Program = p match {
     case in.Program(_, members, _) =>
-    def traverseMember(m: in.Member): Unit = {  println(m.getClass() ); println(m);m match {
+    def traverseMember(m: in.Member): Unit = {  m match {
         case m: in.Method => {
                 val member=m.asInstanceOf[in.Method];
                 val proxy= in.MethodProxy(member.name.name + member.encodingConfig.config(), member.name.uniqueName + member.encodingConfig.config())(member.name.info)
@@ -80,7 +80,7 @@ var baseDomains: Map [String,in.DomainDefinition] = Map.empty
                  }
           case m: in.MPredicate => {
                 val member=m.asInstanceOf[in.MPredicate];
-                println(member.receiver);
+               
                 val proxy= in.MPredicateProxy(member.name.name + member.encodingConfig.config(), member.name.uniqueName + member.encodingConfig.config())(member.name.info)
                 val body= computeNewAssBody(member.body,member.encodingConfig,p)
                 val newMember= in.MPredicate(member.receiver, proxy, member.args, body, member.encodingConfig )(member.info);
@@ -249,7 +249,7 @@ var baseDomains: Map [String,in.DomainDefinition] = Map.empty
 
       }
      
-      def transformStmt(s: in.Stmt, m:EncodingConfig,p:in.Program):in.Stmt= {println(s.getClass());s match {
+      def transformStmt(s: in.Stmt, m:EncodingConfig,p:in.Program):in.Stmt= {s match {
           case d@in.Defer(stmt)=> checkStmt(stmt,m,p); in.Defer(transformStmt(stmt,m,p).asInstanceOf[in.Deferrable])(d.info)
           case s@in.SingleAss(l,r)=>{checkExpr(r,m,p);in.SingleAss(handleAssignee(l,m,p),transformExpr(r,m,p))(s.info)}
           case s@in.Block(decls,stmts) => stmts.map(a=> checkStmt(a,m,p));in.Block(decls,stmts.map(a=> transformStmt(a,m,p)))(s.info)
